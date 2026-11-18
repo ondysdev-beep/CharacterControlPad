@@ -1,5 +1,5 @@
--- ForeverPad - Binding Engine (Phase 5)
--- Turns the active profile into override bindings owned by ForeverPad:
+-- CharacterControlPad - Binding Engine (Phase 5)
+-- Turns the active profile into override bindings owned by CharacterControlPad:
 --   SetOverrideBinding(owner, false, "SHIFT-PAD1", "ACTIONBUTTON5")
 -- The client's binding system then performs the action (verified in Phase 3/4); the addon never
 -- calls protected functions. Override bindings are not saved to the player's key bindings.
@@ -10,7 +10,7 @@
 -- Rules:
 --   * bindings are only changed out of combat; changes requested in combat are applied after it;
 --   * only active in the mouse & keyboard interface style (Mkb); in the Blizzard Gamepad UI
---     ForeverPad steps aside (that UI has its own static bindings and action slots).
+--     CharacterControlPad steps aside (that UI has its own static bindings and action slots).
 
 local _, ns = ...
 
@@ -181,7 +181,7 @@ function Engine.IsModifierButton(profile, key)
 end
 
 ------------------------------------------------------------------------
--- Describing actions (for /fpad list)
+-- Describing actions (for /ccp list)
 ------------------------------------------------------------------------
 
 -- Action slot shown by any action button frame: Blizzard (.action), secure attribute "action",
@@ -303,12 +303,12 @@ end
 -- With GamePadCursorAutoEnable = 1 the client switches to its gamepad cursor whenever a window
 -- opens and on Esc (Blizzard_Game/Shared/Game.lua, UIParentPanelManager.lua): the left stick then
 -- moves the cursor and GamePadCursorLeftClick / RightClick buttons click - often R2 / R1, which
--- ForeverPad uses as modifiers. ForeverPad is meant for "character on the controller, windows
+-- CharacterControlPad uses as modifiers. CharacterControlPad is meant for "character on the controller, windows
 -- with the mouse", so by default it keeps the automatic cursor off while it is active.
 
 -- Forever defaults (wowless data/products/wowf/cvars.yaml): AutoEnable 1, OnLogin 1, LeftClick
 -- PADRTRIGGER, RightClick PADRSHOULDER, AutoDisableSticks 2, AutoDisableJump 1. Addons may not call
--- SetGamePadCursorControl in Forever (ADDON_ACTION_FORBIDDEN), so ForeverPad only uses CVars:
+-- SetGamePadCursorControl in Forever (ADDON_ACTION_FORBIDDEN), so CharacterControlPad only uses CVars:
 --   AutoEnable 0         - windows and Esc no longer switch to the cursor
 --   AutoDisableSticks 2  - any stick input turns the cursor off (safety net)
 --   AutoDisableJump 1    - jumping turns it off too
@@ -379,7 +379,7 @@ function Engine.Apply(reason)
 		return false
 	end
 	pending = false
-	owner = owner or CreateFrame("Frame", "ForeverPadBindingOwner")
+	owner = owner or CreateFrame("Frame", "CharacterControlPadBindingOwner")
 	ClearOverrideBindings(owner)
 
 	local state = {
@@ -441,7 +441,7 @@ function Engine.Apply(reason)
 		state.conflicts = {}
 		if type(GetBindingAction) == "function" then
 			for key, want in pairs(expected) do
-				-- keys temporarily held by ForeverPad's own context layer (Context.lua) are not conflicts
+				-- keys temporarily held by CharacterControlPad's own context layer (Context.lua) are not conflicts
 				local ownLayer = ns.Context and ns.Context.Owns(key)
 				local ok, actual = pcall(GetBindingAction, key, true)
 				if not ownLayer and ok and type(actual) == "string" and actual ~= "" and actual ~= want then
@@ -455,7 +455,7 @@ function Engine.Apply(reason)
 	return true, state
 end
 
--- suffix: optional text appended to the summary line (e.g. the /fpad hint at login)
+-- suffix: optional text appended to the summary line (e.g. the /ccp hint at login)
 function Engine.PrintState(suffix)
 	local s = ns.db.lastApply
 	if not s then

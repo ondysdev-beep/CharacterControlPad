@@ -1,4 +1,4 @@
-// Runs the whole offline test suite for the ForeverPad addon:
+// Runs the whole offline test suite for the CharacterControlPad addon:
 //   1. Lua 5.1 syntax check of every addon file (luaparse)
 //   2. list of global identifiers used (to spot typos in WoW API names)
 //   3. every *_test.lua with mocked WoW API in a Lua VM (fengari)
@@ -7,7 +7,7 @@ const { execFileSync } = require('child_process');
 const fs = require('fs');
 const path = require('path');
 
-const root = path.join(__dirname, '..', 'ForeverPad') + path.sep;
+const root = path.join(__dirname, '..', 'CharacterControlPad') + path.sep;
 const luaFiles = fs.readdirSync(root).filter(f => f.endsWith('.lua')).map(f => root + f);
 let failed = false;
 

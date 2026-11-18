@@ -1,6 +1,6 @@
--- ForeverPad - profiles (SavedVariables)
--- ForeverPadDB.profiles[name] = { modifiers = {...}, bindings = { [bindingKey] = action } }
--- ForeverPadDB.characters["Name-Realm"] = profileName
+-- CharacterControlPad - profiles (SavedVariables)
+-- CharacterControlPadDB.profiles[name] = { modifiers = {...}, bindings = { [bindingKey] = action } }
+-- CharacterControlPadDB.characters["Name-Realm"] = profileName
 -- Class-based profiles are prepared for (profile names are free text) but not automated yet.
 
 local _, ns = ...
@@ -143,7 +143,7 @@ function Profiles.Delete(name)
 		return false, "no such profile: " .. tostring(name)
 	end
 	if name == DEFAULT_NAME then
-		return false, "the Default profile cannot be deleted (use /fpad profile reset)"
+		return false, "the Default profile cannot be deleted (use /ccp profile reset)"
 	end
 	ns.db.profiles[name] = nil
 	for char, assigned in pairs(ns.db.characters) do

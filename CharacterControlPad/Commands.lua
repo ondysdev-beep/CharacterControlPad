@@ -1,4 +1,4 @@
--- ForeverPad - slash commands for the binding engine and profiles
+-- CharacterControlPad - slash commands for the binding engine and profiles
 -- (A graphical configurator comes later; these commands are the Phase 5 interface.)
 
 local _, ns = ...
@@ -39,7 +39,7 @@ local function SortedBindingKeys(profile)
 end
 
 ------------------------------------------------------------------------
--- /fpad list | map | unmap
+-- /ccp list | map | unmap
 ------------------------------------------------------------------------
 
 ns.RegisterCommand("list", "show the controller mapping of the active profile", function()
@@ -51,9 +51,9 @@ ns.RegisterCommand("list", "show the controller mapping of the active profile", 
 	end
 end)
 
-local MAP_USAGE = "Usage: /fpad map <combo> bar <1-8> <1-12>  |  /fpad map <combo> cmd <COMMAND>  |  /fpad map <combo> click <ButtonFrameName>   (combo e.g. Cross, L1+Cross, L1+R1+Square)"
+local MAP_USAGE = "Usage: /ccp map <combo> bar <1-8> <1-12>  |  /ccp map <combo> cmd <COMMAND>  |  /ccp map <combo> click <ButtonFrameName>   (combo e.g. Cross, L1+Cross, L1+R1+Square)"
 
-ns.RegisterCommand("map", "map a combo: /fpad map L1+Cross bar 1 5  |  /fpad map Touchpad cmd TOGGLEWORLDMAP", function(rest)
+ns.RegisterCommand("map", "map a combo: /ccp map L1+Cross bar 1 5  |  /ccp map Touchpad cmd TOGGLEWORLDMAP", function(rest)
 	local combo, kind, a, b = (rest or ""):match("^(%S+)%s+(%S+)%s*(%S*)%s*(%S*)$")
 	if not combo then
 		ns.Print(MAP_USAGE)
@@ -82,7 +82,7 @@ ns.RegisterCommand("map", "map a combo: /fpad map L1+Cross bar 1 5  |  /fpad map
 			return
 		end
 		if not Engine.IsValidCommand(command) then
-			ns.Printf("|cffff0000Unknown binding command '%s'.|r /fpad commands lists known ones.", command)
+			ns.Printf("|cffff0000Unknown binding command '%s'.|r /ccp commands lists known ones.", command)
 			return
 		end
 		action = { type = "command", command = command }
@@ -107,7 +107,7 @@ ns.RegisterCommand("map", "map a combo: /fpad map L1+Cross bar 1 5  |  /fpad map
 	ApplyAndReport("map")
 end)
 
-ns.RegisterCommand("unmap", "remove a combo: /fpad unmap L1+Cross", function(rest)
+ns.RegisterCommand("unmap", "remove a combo: /ccp unmap L1+Cross", function(rest)
 	local profile = Profiles.Active()
 	local key, err = Engine.ParseCombo(rest, profile)
 	if not key then
@@ -124,10 +124,10 @@ ns.RegisterCommand("unmap", "remove a combo: /fpad unmap L1+Cross", function(res
 end)
 
 ------------------------------------------------------------------------
--- /fpad mod
+-- /ccp mod
 ------------------------------------------------------------------------
 
-ns.RegisterCommand("mod", "set modifier buttons: /fpad mod shift L1 | ctrl R1 | alt none", function(rest)
+ns.RegisterCommand("mod", "set modifier buttons: /ccp mod shift L1 | ctrl R1 | alt none", function(rest)
 	local profile = Profiles.Active()
 	local modName, buttonName = (rest or ""):match("^(%S+)%s+(%S+)$")
 	if not modName then
@@ -137,7 +137,7 @@ ns.RegisterCommand("mod", "set modifier buttons: /fpad mod shift L1 | ctrl R1 | 
 			local b = key and ns.buttonByKey[key]
 			parts[#parts + 1] = string.format("%s=%s", m.id, b and b.label or tostring(key))
 		end
-		ns.Printf("Modifiers: %s. Change: /fpad mod <shift|ctrl|alt> <button|none>", table.concat(parts, ", "))
+		ns.Printf("Modifiers: %s. Change: /ccp mod <shift|ctrl|alt> <button|none>", table.concat(parts, ", "))
 		return
 	end
 	modName = modName:upper()
@@ -172,10 +172,10 @@ ns.RegisterCommand("mod", "set modifier buttons: /fpad mod shift L1 | ctrl R1 | 
 end)
 
 ------------------------------------------------------------------------
--- /fpad commands | on | off | apply
+-- /ccp commands | on | off | apply
 ------------------------------------------------------------------------
 
-ns.RegisterCommand("commands", "list game/UI commands usable with /fpad map ... cmd", function()
+ns.RegisterCommand("commands", "list game/UI commands usable with /ccp map ... cmd", function()
 	for _, c in ipairs(ns.COMMANDS) do
 		local valid = Engine.IsValidCommand(c.command)
 		ns.Printf("  %s%s|r - %s (%s)%s", valid and "|cffffff00" or "|cff888888", c.command, c.label, c.group,
@@ -184,12 +184,12 @@ ns.RegisterCommand("commands", "list game/UI commands usable with /fpad map ... 
 	ns.Print("Any other Blizzard binding command name also works if the client knows it.")
 end)
 
-ns.RegisterCommand("on", "enable ForeverPad bindings", function()
+ns.RegisterCommand("on", "enable CharacterControlPad bindings", function()
 	ns.db.enabled = true
 	ApplyAndReport("enabled")
 end)
 
-ns.RegisterCommand("off", "disable ForeverPad bindings and restore your modifier settings", function()
+ns.RegisterCommand("off", "disable CharacterControlPad bindings and restore your modifier settings", function()
 	ns.db.enabled = false
 	ApplyAndReport("disabled")
 end)
@@ -198,7 +198,7 @@ ns.RegisterCommand("apply", "re-apply the active profile", function()
 	ApplyAndReport("manual")
 end)
 
-ns.RegisterCommand("cursor", "gamepad cursor: /fpad cursor off = never switch to it (default), on = let the game switch to it", function(rest)
+ns.RegisterCommand("cursor", "gamepad cursor: /ccp cursor off = never switch to it (default), on = let the game switch to it", function(rest)
 	local arg = (rest or ""):lower()
 	if arg == "off" or arg == "on" then
 		ns.db.keepCursorOff = (arg == "off")
@@ -207,15 +207,15 @@ ns.RegisterCommand("cursor", "gamepad cursor: /fpad cursor off = never switch to
 			ns.Config.Refresh()
 		end
 	end
-	ns.Printf("Gamepad cursor: %s. Change: /fpad cursor on | off",
+	ns.Printf("Gamepad cursor: %s. Change: /ccp cursor on | off",
 		Engine.KeepCursorOff() and "kept off (windows with the mouse)" or "the game switches to it when a window opens")
 end)
 
 ------------------------------------------------------------------------
--- /fpad profile ...
+-- /ccp profile ...
 ------------------------------------------------------------------------
 
-local PROFILE_USAGE = "/fpad profile [use|new|template|copy|rename|delete|reset] <name>  (new = empty, template = default layout)"
+local PROFILE_USAGE = "/ccp profile [use|new|template|copy|rename|delete|reset] <name>  (new = empty, template = default layout)"
 
 ns.RegisterCommand("profile", PROFILE_USAGE, function(rest)
 	local sub, name = (rest or ""):match("^(%S*)%s*(.-)%s*$")
@@ -259,15 +259,15 @@ ns.RegisterCommand("profile", PROFILE_USAGE, function(rest)
 end)
 
 ------------------------------------------------------------------------
--- /fpad lang
+-- /ccp lang
 ------------------------------------------------------------------------
 
 local LANGUAGE_ALIASES = { en = "enUS", english = "enUS", cs = "csCZ", cz = "csCZ", czech = "csCZ", auto = "auto" }
 
-ns.RegisterCommand("lang", "language of the windows: /fpad lang en | cs | auto (auto = Czech when WowfCZ is enabled)", function(rest)
+ns.RegisterCommand("lang", "language of the windows: /ccp lang en | cs | auto (auto = Czech when WowfCZ is enabled)", function(rest)
 	local setting = LANGUAGE_ALIASES[(rest or ""):lower()]
 	if not setting then
-		ns.Printf("Language: %s (setting: %s). Change: /fpad lang en | cs | auto",
+		ns.Printf("Language: %s (setting: %s). Change: /ccp lang en | cs | auto",
 			ns.LANGUAGE_NAMES[ns.language] or ns.language, tostring(ns.db.language or "auto"))
 		return
 	end

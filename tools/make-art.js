@@ -1,14 +1,14 @@
 // Generates the addon's textures (original artwork, drawn with signed distance functions):
-//   ForeverPad/Media/Controller.tga  512x256  schematic gamepad for the settings window
-//   ForeverPad/Media/Glyphs.tga      512x64   8 round button badges: cross, circle, square, triangle, up, down, left, right
-//   ForeverPad/Media/Glow.tga        64x64    soft ring used to highlight a button on the controller
+//   CharacterControlPad/Media/Controller.tga  512x256  schematic gamepad for the settings window
+//   CharacterControlPad/Media/Glyphs.tga      512x64   8 round button badges: cross, circle, square, triangle, up, down, left, right
+//   CharacterControlPad/Media/Glow.tga        64x64    soft ring used to highlight a button on the controller
 // Usage: node tools/make-art.js [previewDir]   (previewDir: also writes PNG previews there)
 // The marker coordinates used by ConfigWindow.lua (LAYOUT) refer to the 512x256 controller canvas.
 const fs = require('fs');
 const path = require('path');
 const zlib = require('zlib');
 
-const OUT = path.join(__dirname, '..', 'ForeverPad', 'Media');
+const OUT = path.join(__dirname, '..', 'CharacterControlPad', 'Media');
 const SS = 4; // supersampling per axis
 
 // ---------------------------------------------------------------- canvas

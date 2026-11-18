@@ -60,11 +60,11 @@ local bt4Icon = NewWidget() bt4Icon.objectType = "Texture" bt4Icon.parent = BT4B
 local mouseFocus
 function GetMouseFoci() return { mouseFocus } end
 
-ForeverPadDB = { setupDone = true }
+CharacterControlPadDB = { setupDone = true }
 local ns = {}
 for _, f in ipairs({ "Core.lua", "Locale.lua", "Data.lua", "Profiles.lua", "BindingEngine.lua", "Compat.lua", "Commands.lua",
   "ConfigWindow.lua", "ActionPicker.lua", "QuickBind.lua", "ModifierPanel.lua", "ProfilesPanel.lua", "Wizard.lua" }) do
-  assert(loadfile(ROOT .. f))("ForeverPad", ns)
+  assert(loadfile(ROOT .. f))("CharacterControlPad", ns)
 end
 local core = eventFrames[1]
 local function fire(e, ...) core.scripts.OnEvent(core, e, ...) end
@@ -74,43 +74,43 @@ local function printedHas(s) for _, l in ipairs(printed) do if l:find(s, 1, true
 
 -- another addon owns PAD2 with priority
 foreignBindings.PAD2 = "CLICK ConsolePortButton:LeftButton"
-fire("ADDON_LOADED", "ForeverPad") fire("PLAYER_LOGIN")
-local db = ForeverPadDB
+fire("ADDON_LOADED", "CharacterControlPad") fire("PLAYER_LOGIN")
+local db = CharacterControlPadDB
 ok(printedHas("ConsolePort is loaded") and printedHas("Bartender4 detected"), "known addons reported at login")
 ok(db.lastApply.conflicts.PAD2 == "CLICK ConsolePortButton:LeftButton", "conflict detected for PAD2")
 ok(db.lastApply.conflicts.PAD1 == nil, "no false conflict for PAD1")
 ok(printedHas("Circle is overridden by another addon"), "conflict printed")
 
-SlashCmdList.FOREVERPAD("")
-local cf = ForeverPadConfigFrame
+SlashCmdList.CHARACTERCONTROLPAD("")
+local cf = CharacterControlPadConfigFrame
 ok(cf.compat.text:find("ConsolePort") and cf.compat.text:find("Bartender4"), "config window shows compatibility notes")
 ok(cf.errors.text:find("1 binding"), "conflict counted in errors line: " .. tostring(cf.errors.text))
 
--- /fpad map click
-SlashCmdList.FOREVERPAD("map L2 click BT4Button7")
-ok(db.profiles.Default.bindings.PADLTRIGGER.type == "click" and overrides.PADLTRIGGER == "CLICK BT4Button7:LeftButton", "/fpad map ... click")
+-- /ccp map click
+SlashCmdList.CHARACTERCONTROLPAD("map L2 click BT4Button7")
+ok(db.profiles.Default.bindings.PADLTRIGGER.type == "click" and overrides.PADLTRIGGER == "CLICK BT4Button7:LeftButton", "/ccp map ... click")
 local text, icon, slot = ns.Config.ActionInfo(db.profiles.Default.bindings.PADLTRIGGER)
 ok(text:find("Spell907") and text:find("BT4Button7") and icon == 2007 and slot == 7, "click action shows slot content from LAB button")
 local missing = ns.Config.ActionInfo({ type = "click", button = "NoSuchButton" })
 ok(missing:find("button not found"), "missing frame reported")
-ok(ns.Engine.DescribeAction(db.profiles.Default.bindings.PADLTRIGGER):find("slot 7"), "/fpad list describes click action")
+ok(ns.Engine.DescribeAction(db.profiles.Default.bindings.PADLTRIGGER):find("slot 7"), "/ccp list describes click action")
 
 -- quick bind on a foreign button (no overlays because Blizzard bars are hidden)
 cf.quickBind.scripts.OnClick()
 ok(ns.QuickBind.IsActive(), "quick bind active")
-local cap = ForeverPadQuickBindCapture
+local cap = CharacterControlPadQuickBindCapture
 mouseFocus = bt4Icon
 cap.scripts.OnGamePadButtonDown(cap, "PAD3")
 ok(overrides.PAD3 == "CLICK BT4Button7:LeftButton", "Square bound to hovered Bartender button via parent walk")
-ok(ForeverPadQuickBindBanner.result.text:find("BT4Button7"), "banner reports foreign button")
+ok(CharacterControlPadQuickBindBanner.result.text:find("BT4Button7"), "banner reports foreign button")
 -- hovering our own windows or nothing -> hover-first message
-mouseFocus = ForeverPadQuickBindBanner
-ForeverPadQuickBindBanner.name = "ForeverPadQuickBindBanner" ForeverPadQuickBindBanner.objectType = "Button"
+mouseFocus = CharacterControlPadQuickBindBanner
+CharacterControlPadQuickBindBanner.name = "CharacterControlPadQuickBindBanner" CharacterControlPadQuickBindBanner.objectType = "Button"
 cap.scripts.OnGamePadButtonDown(cap, "PAD4")
-ok(overrides.PAD4 ~= "CLICK ForeverPadQuickBindBanner:LeftButton" and ForeverPadQuickBindBanner.result.text:find("Hover"), "own frames ignored")
+ok(overrides.PAD4 ~= "CLICK CharacterControlPadQuickBindBanner:LeftButton" and CharacterControlPadQuickBindBanner.result.text:find("Hover"), "own frames ignored")
 mouseFocus = nil
 cap.scripts.OnGamePadButtonDown(cap, "PAD4")
-ok(ForeverPadQuickBindBanner.result.text:find("Hover"), "nothing under mouse -> hover hint")
+ok(CharacterControlPadQuickBindBanner.result.text:find("Hover"), "nothing under mouse -> hover hint")
 -- plain non-action button is not accepted
 local plain = NewWidget() plain.name = "SomeOptionsButton" plain.objectType = "Button"
 mouseFocus = plain

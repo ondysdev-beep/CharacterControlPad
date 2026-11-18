@@ -1,4 +1,4 @@
--- ForeverPad - quick bind mode ("hover a bar button, press a combo")
+-- CharacterControlPad - quick bind mode ("hover a bar button, press a combo")
 --
 -- While active:
 --   * a transparent overlay covers every *visible* Blizzard action button (anchored to it, so any
@@ -204,7 +204,7 @@ function QB.ForeignButtonUnderMouse()
 		end
 		local okN, name = pcall(frame.GetName, frame)
 		local okT, objectType = pcall(frame.GetObjectType, frame)
-		if okN and type(name) == "string" and not name:find("^ForeverPad")
+		if okN and type(name) == "string" and not name:find("^CharacterControlPad")
 			and okT and (objectType == "Button" or objectType == "CheckButton")
 			and IsActionButtonFrame(frame) then
 			return name
@@ -301,7 +301,7 @@ local function EnsureFrames()
 	if capture then
 		return
 	end
-	capture = CreateFrame("Frame", "ForeverPadQuickBindCapture", UIParent)
+	capture = CreateFrame("Frame", "CharacterControlPadQuickBindCapture", UIParent)
 	capture:SetSize(1, 1)
 	capture:SetPoint("TOPLEFT")
 	capture:Hide()
@@ -309,7 +309,7 @@ local function EnsureFrames()
 		QB.OnPadButton(button)
 	end)
 
-	banner = ns.CreatePanelFrame("ForeverPadQuickBindBanner", 580, 104)
+	banner = ns.CreatePanelFrame("CharacterControlPadQuickBindBanner", 580, 104)
 	banner:SetPoint("TOP", UIParent, "TOP", 0, -90)
 	banner.title:SetText(L.QB_TITLE)
 	banner.help = banner:CreateFontString(nil, "OVERLAY", ns.Font"GameFontHighlightSmall")

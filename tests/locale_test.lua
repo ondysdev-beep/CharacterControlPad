@@ -63,11 +63,11 @@ C_InputInterfaceStyle = { GetCurrentStyle = function() return 0 end }
 for i = 1, 12 do _G["ActionButton" .. i] = NewWidget() _G["ActionButton" .. i].action = i end
 MainActionBar = NewWidget()
 
-ForeverPadDB = { setupDone = true }
+CharacterControlPadDB = { setupDone = true }
 local ns = {}
 for _, f in ipairs({ "Core.lua", "Locale.lua", "Data.lua", "Profiles.lua", "BindingEngine.lua", "Compat.lua", "Commands.lua",
   "ConfigWindow.lua", "ActionPicker.lua", "QuickBind.lua", "ModifierPanel.lua", "ProfilesPanel.lua", "Wizard.lua" }) do
-  assert(loadfile(ROOT .. f))("ForeverPad", ns)
+  assert(loadfile(ROOT .. f))("CharacterControlPad", ns)
 end
 local core = eventFrames[1]
 local function fire(e, ...) core.scripts.OnEvent(core, e, ...) end
@@ -75,58 +75,58 @@ local passed = 0
 local function ok(cond, msg) if not cond then error("FAIL: " .. msg, 2) end passed = passed + 1 end
 local function printedHas(s) for _, l in ipairs(printed) do if l:find(s, 1, true) then return true end end return false end
 
-fire("ADDON_LOADED", "ForeverPad")
+fire("ADDON_LOADED", "CharacterControlPad")
 ok(ns.language == "csCZ", "auto -> Czech because WowfCZ is enabled")
-ok(ns.Font("GameFontNormal") == "ForeverPad_GameFontNormal", "private font object created")
-ok(ForeverPad_GameFontNormal.path:find("NotoSans") ~= nil and ForeverPad_GameFontNormal.size == 12, "private font uses bundled Noto Sans, same size")
+ok(ns.Font("GameFontNormal") == "CharacterControlPad_GameFontNormal", "private font object created")
+ok(CharacterControlPad_GameFontNormal.path:find("NotoSans") ~= nil and CharacterControlPad_GameFontNormal.size == 12, "private font uses bundled Noto Sans, same size")
 ok(ns.L.CHANGE == "Změnit" and ns.L.QB_ASSIGNED == "|cff00ff00%s|r -> %s", "Czech strings with English fallback")
 ok(ns.buttonById.CROSS.label == "Křížek" and ns.BARS[1].label == "Hlavní bar" and ns.commandLabel.JUMP == "Skok", "data labels translated")
 ok(ns.FindButton("Cross") == ns.buttonById.CROSS and ns.FindButton("x") == ns.buttonById.CROSS, "English input still works for slash commands")
 
 fire("PLAYER_LOGIN")
-ok(printedHas("Profil 'Default' aktivní") and printedHas("/fpad = nastavení"), "login line in Czech")
+ok(printedHas("Profil 'Default' aktivní") and printedHas("/ccp = nastavení"), "login line in Czech")
 
-SlashCmdList.FOREVERPAD("")
-local cf = ForeverPadConfigFrame
+SlashCmdList.CHARACTERCONTROLPAD("")
+local cf = CharacterControlPadConfigFrame
 ok(cf.status.text:find("Stav") and cf.status.text:find("aktivní"), "config status in Czech")
-ok(cf.status.font == "ForeverPad_GameFontHighlightSmall", "config font strings use private font")
-ok(cf.quickBind.text == "Přiřadit na barech" and cf.quickBind.normalFont == "ForeverPad_GameFontNormal", "buttons translated and re-fonted")
+ok(cf.status.font == "CharacterControlPad_GameFontHighlightSmall", "config font strings use private font")
+ok(cf.quickBind.text == "Přiřadit na barech" and cf.quickBind.normalFont == "CharacterControlPad_GameFontNormal", "buttons translated and re-fonted")
 ok(cf.language.text == "English", "language button offers English")
 
 -- tooltip: private tooltip, GameTooltip untouched
 ns.ShowActionTooltip(cf, 1, "x")
-ok(ns.tooltip ~= GameTooltip and ForeverPadTooltip ~= nil, "private tooltip frame used")
+ok(ns.tooltip ~= GameTooltip and CharacterControlPadTooltip ~= nil, "private tooltip frame used")
 
 -- switch language -> reload
 cf.language.scripts.OnClick()
-ok(ForeverPadDB.language == "enUS" and reloaded == 1, "language button sets English and reloads UI")
+ok(CharacterControlPadDB.language == "enUS" and reloaded == 1, "language button sets English and reloads UI")
 
--- /fpad lang
-SlashCmdList.FOREVERPAD("lang auto")
-ok(ForeverPadDB.language == "auto" and reloaded == 1, "/fpad lang auto (no forced reload)")
+-- /ccp lang
+SlashCmdList.CHARACTERCONTROLPAD("lang auto")
+ok(CharacterControlPadDB.language == "auto" and reloaded == 1, "/ccp lang auto (no forced reload)")
 
 -- fresh load: explicit English even with WowfCZ; Blizzard fonts kept
-ForeverPadDB.language = "enUS"
+CharacterControlPadDB.language = "enUS"
 local ns2 = {}
-for _, f in ipairs({ "Core.lua", "Locale.lua", "Data.lua" }) do assert(loadfile(ROOT .. f))("ForeverPad", ns2) end
-eventFrames[#eventFrames - 0].scripts.OnEvent(nil, "ADDON_LOADED", "ForeverPad")
+for _, f in ipairs({ "Core.lua", "Locale.lua", "Data.lua" }) do assert(loadfile(ROOT .. f))("CharacterControlPad", ns2) end
+eventFrames[#eventFrames - 0].scripts.OnEvent(nil, "ADDON_LOADED", "CharacterControlPad")
 ok(ns2.language == "enUS" and ns2.Font("GameFontNormal") == "GameFontNormal" and ns2.buttonById.CROSS.label == "Cross", "explicit English: no custom fonts, English labels")
 
 -- font file failing to load -> fallback to Blizzard fonts, still Czech text
-ForeverPadDB.language = "csCZ"
+CharacterControlPadDB.language = "csCZ"
 fontLoadWorks = false
 local ns3 = {}
-for _, f in ipairs({ "Core.lua", "Locale.lua", "Data.lua" }) do assert(loadfile(ROOT .. f))("ForeverPad", ns3) end
-eventFrames[#eventFrames].scripts.OnEvent(nil, "ADDON_LOADED", "ForeverPad")
+for _, f in ipairs({ "Core.lua", "Locale.lua", "Data.lua" }) do assert(loadfile(ROOT .. f))("CharacterControlPad", ns3) end
+eventFrames[#eventFrames].scripts.OnEvent(nil, "ADDON_LOADED", "CharacterControlPad")
 ok(ns3.language == "csCZ" and ns3.Font("GameFontNormal") == "GameFontNormal" and not ns3.HasCustomFonts(), "missing font -> Blizzard fonts")
 
 -- WowfCZ disabled -> auto English
-ForeverPadDB.language = nil
+CharacterControlPadDB.language = nil
 wowfczState = 0
 fontLoadWorks = true
 local ns4 = {}
-for _, f in ipairs({ "Core.lua", "Locale.lua", "Data.lua" }) do assert(loadfile(ROOT .. f))("ForeverPad", ns4) end
-eventFrames[#eventFrames].scripts.OnEvent(nil, "ADDON_LOADED", "ForeverPad")
+for _, f in ipairs({ "Core.lua", "Locale.lua", "Data.lua" }) do assert(loadfile(ROOT .. f))("CharacterControlPad", ns4) end
+eventFrames[#eventFrames].scripts.OnEvent(nil, "ADDON_LOADED", "CharacterControlPad")
 ok(ns4.language == "enUS", "auto -> English without WowfCZ")
 
 io.write("LOCALE TESTS PASSED: " .. passed .. "\n")

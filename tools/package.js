@@ -1,5 +1,5 @@
 // Builds the release ZIP of the addon from the committed state (HEAD):
-//   dist/ForeverPad-<version>.zip  containing  ForeverPad/...
+//   dist/CharacterControlPad-<version>.zip  containing  CharacterControlPad/...
 // Steps: version check (TOC == Core.lua), clean working tree, full test suite, git archive.
 // Usage: npm run package
 const { execFileSync } = require('child_process');
@@ -7,11 +7,11 @@ const fs = require('fs');
 const path = require('path');
 
 const repo = path.join(__dirname, '..');
-const addon = path.join(repo, 'ForeverPad');
+const addon = path.join(repo, 'CharacterControlPad');
 const fail = (msg) => { console.error('PACKAGE FAILED: ' + msg); process.exit(1); };
 const git = (...args) => execFileSync('git', args, { cwd: repo, encoding: 'utf8' });
 
-const toc = fs.readFileSync(path.join(addon, 'ForeverPad.toc'), 'utf8');
+const toc = fs.readFileSync(path.join(addon, 'CharacterControlPad.toc'), 'utf8');
 const tocVersion = (toc.match(/^## Version:\s*(\S+)/m) || [])[1];
 const coreVersion = (fs.readFileSync(path.join(addon, 'Core.lua'), 'utf8').match(/ns\.VERSION = "([^"]+)"/) || [])[1];
 if (!tocVersion || tocVersion !== coreVersion) fail(`version mismatch: TOC ${tocVersion} vs Core.lua ${coreVersion}`);
@@ -31,7 +31,7 @@ try {
 }
 
 fs.mkdirSync(path.join(repo, 'dist'), { recursive: true });
-const out = path.join('dist', `ForeverPad-${tocVersion}.zip`);
-git('archive', '--format=zip', '--prefix=ForeverPad/', '-o', out, 'HEAD:ForeverPad');
+const out = path.join('dist', `CharacterControlPad-${tocVersion}.zip`);
+git('archive', '--format=zip', '--prefix=CharacterControlPad/', '-o', out, 'HEAD:CharacterControlPad');
 const size = fs.statSync(path.join(repo, out)).size;
 console.log(`Created ${out} (${Math.round(size / 1024)} kB) from ${git('rev-parse', '--short', 'HEAD').trim()}`);

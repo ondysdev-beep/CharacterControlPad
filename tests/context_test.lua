@@ -98,12 +98,12 @@ C_InputInterfaceStyle = { GetCurrentStyle = function() return 0 end }
 for i = 1, 12 do _G["ActionButton" .. i] = NewWidget() _G["ActionButton" .. i].action = i end
 MainActionBar = NewWidget()
 
-ForeverPadDB = { setupDone = true }
+CharacterControlPadDB = { setupDone = true }
 local ns = {}
 for _, f in ipairs({ "Core.lua", "Locale.lua", "Data.lua", "Profiles.lua", "BindingEngine.lua", "Compat.lua", "Commands.lua",
   "ConfigWindow.lua", "ActionPicker.lua", "QuickBind.lua", "ModifierPanel.lua", "ProfilesPanel.lua", "Wizard.lua",
   "Context.lua", "ContextPanel.lua" }) do
-  assert(loadfile(ROOT .. f))("ForeverPad", ns)
+  assert(loadfile(ROOT .. f))("CharacterControlPad", ns)
 end
 local core = eventFrames[1]
 local function fire(e, ...) core.scripts.OnEvent(core, e, ...) end
@@ -112,8 +112,8 @@ local function ok(cond, msg) if not cond then error("FAIL: " .. msg, 2) end pass
 local Context = ns.Context
 local refresh = Context.Refresh
 
-fire("ADDON_LOADED", "ForeverPad") fire("PLAYER_LOGIN")
-local ctxOwner = function() return ForeverPadContextOwner end
+fire("ADDON_LOADED", "CharacterControlPad") fire("PLAYER_LOGIN")
+local ctxOwner = function() return CharacterControlPadContextOwner end
 ok(effective("PAD2") == "ACTIONBUTTON2", "template: Circle = main bar 2")
 
 ---------------- nothing open ----------------
@@ -125,7 +125,7 @@ ok(ns.db.context.enabled == true and ns.db.context.hints == true, "defaults: ena
 bagsOpen = true refresh()
 ok(effective("PAD2") == "TOGGLEGAMEMENU" and layers[ctxOwner()].PAD2.priority == true, "bags open -> Circle closes (priority override)")
 ok(effective("PAD1") == "ACTIONBUTTON1", "other buttons unchanged")
-ok(ForeverPadContextHints == nil or not ForeverPadContextHints.shown, "no hint line for close only")
+ok(CharacterControlPadContextHints == nil or not CharacterControlPadContextHints.shown, "no hint line for close only")
 bagsOpen = false refresh()
 ok(effective("PAD2") == "ACTIONBUTTON2", "bags closed -> Circle back to the player's binding")
 UISpecialFrames[1] = "SomeSpecialFrame" SomeSpecialFrame = Plain({ shown = true }) refresh()
@@ -145,23 +145,23 @@ local bag = Plain({ GetBagID = function() return 0 end })
 local bagItem = Plain({ GetBagID = function() return 0 end, parent = bag })
 mouseFocus = nil refresh()
 ok(effective("PAD1") == "ACTIONBUTTON1" and effective("PAD3") == "ACTIONBUTTON3", "merchant, nothing hovered -> Cross/Square keep player's actions")
-ok(effective("PAD4") == "CLICK ForeverPadContextPAD4:LeftButton" and ForeverPadContextPAD4.attributes.clickbutton == MerchantRepairAllButton, "Triangle repairs all via secure proxy")
-ok(ForeverPadContextPAD4.attributes.type == "click" and ForeverPadContextPAD4.template == "SecureActionButtonTemplate", "proxy is a SecureActionButton of type click")
-ok(effective("PADFORWARD") ~= "CLICK ForeverPadContextPADFORWARD:LeftButton", "sell junk disabled -> Options not taken")
+ok(effective("PAD4") == "CLICK CharacterControlPadContextPAD4:LeftButton" and CharacterControlPadContextPAD4.attributes.clickbutton == MerchantRepairAllButton, "Triangle repairs all via secure proxy")
+ok(CharacterControlPadContextPAD4.attributes.type == "click" and CharacterControlPadContextPAD4.template == "SecureActionButtonTemplate", "proxy is a SecureActionButton of type click")
+ok(effective("PADFORWARD") ~= "CLICK CharacterControlPadContextPADFORWARD:LeftButton", "sell junk disabled -> Options not taken")
 ok(effective("PAD2") == "TOGGLEGAMEMENU", "Circle closes the merchant")
-local hints = ForeverPadContextHints
+local hints = CharacterControlPadContextHints
 ok(hints and hints.shown and hints.anchorTo == MerchantFrame, "hint line under the merchant")
 ok(hints.text.text:find("Buy", 1, true) and hints.text.text:find("Sell", 1, true) and hints.text.text:find("Repair all", 1, true) and hints.text.text:find("Close", 1, true), "hint lists buy, sell, repair, close: " .. hints.text.text)
 mouseFocus = merchItem refresh()
-ok(effective("PAD1") == "CLICK ForeverPadContextPAD1:RightButton" and ForeverPadContextPAD1.attributes.clickbutton == merchItem, "hover merchant item -> Cross = right click (buy)")
+ok(effective("PAD1") == "CLICK CharacterControlPadContextPAD1:RightButton" and CharacterControlPadContextPAD1.attributes.clickbutton == merchItem, "hover merchant item -> Cross = right click (buy)")
 ok(effective("PAD3") == "ACTIONBUTTON3", "Square untouched while hovering a merchant item")
 mouseFocus = bagItem refresh()
-ok(effective("PAD3") == "CLICK ForeverPadContextPAD3:RightButton" and ForeverPadContextPAD3.attributes.clickbutton == bagItem, "hover bag item -> Square = right click (sell)")
+ok(effective("PAD3") == "CLICK CharacterControlPadContextPAD3:RightButton" and CharacterControlPadContextPAD3.attributes.clickbutton == bagItem, "hover bag item -> Square = right click (sell)")
 ok(effective("PAD1") == "ACTIONBUTTON1", "Cross back to normal when not hovering a merchant item")
 mouseFocus = bag refresh()
 ok(effective("PAD3") == "ACTIONBUTTON3", "container frame itself is not an item")
 MerchantSellAllJunkButton.IsEnabled = function() return true end refresh()
-ok(ForeverPadContextPADFORWARD.attributes.clickbutton == MerchantSellAllJunkButton, "Options sells junk when the button is usable")
+ok(CharacterControlPadContextPADFORWARD.attributes.clickbutton == MerchantSellAllJunkButton, "Options sells junk when the button is usable")
 
 -- engine conflict check ignores our own layer
 ns.Engine.Apply("test")
@@ -171,27 +171,27 @@ ok(next(ns.db.lastApply.conflicts) == nil, "context layer is not reported as a c
 local yes, no = Plain({ IsEnabled = function() return true end }), Plain({ IsEnabled = function() return true end })
 StaticPopup1 = Plain({ name = "StaticPopup1", ButtonContainer = { Button1 = yes, Button2 = no } })
 mouseFocus = merchItem refresh()
-ok(ForeverPadContextPAD1.attributes.clickbutton == yes and effective("PAD1") == "CLICK ForeverPadContextPAD1:LeftButton", "popup: Cross accepts (beats buy)")
-ok(ForeverPadContextPAD2.attributes.clickbutton == no and effective("PAD2") == "CLICK ForeverPadContextPAD2:LeftButton", "popup: Circle declines")
+ok(CharacterControlPadContextPAD1.attributes.clickbutton == yes and effective("PAD1") == "CLICK CharacterControlPadContextPAD1:LeftButton", "popup: Cross accepts (beats buy)")
+ok(CharacterControlPadContextPAD2.attributes.clickbutton == no and effective("PAD2") == "CLICK CharacterControlPadContextPAD2:LeftButton", "popup: Circle declines")
 ok(hints.anchorTo == StaticPopup1 and not hints.text.text:find("Sell", 1, true), "hint describes only the popup")
 no.shown = false refresh()
 ok(effective("PAD2") == "TOGGLEGAMEMENU", "popup without a second button -> Circle = Esc")
 StaticPopup1.shown = false
 ReadyCheckFrame = Plain({}) ReadyCheckFrameYesButton = Plain({}) ReadyCheckFrameNoButton = Plain({})
 refresh()
-ok(ForeverPadContextPAD1.attributes.clickbutton == ReadyCheckFrameYesButton and ForeverPadContextPAD2.attributes.clickbutton == ReadyCheckFrameNoButton, "ready check: yes / no")
+ok(CharacterControlPadContextPAD1.attributes.clickbutton == ReadyCheckFrameYesButton and CharacterControlPadContextPAD2.attributes.clickbutton == ReadyCheckFrameNoButton, "ready check: yes / no")
 ReadyCheckFrame.shown = false
 
 ---------------- groups off ----------------
-SlashCmdList.FOREVERPAD("context merchant off")
+SlashCmdList.CHARACTERCONTROLPAD("context merchant off")
 mouseFocus = merchItem refresh()
 ok(effective("PAD4") == "ACTIONBUTTON4" and effective("PAD1") == "ACTIONBUTTON1", "merchant group off")
 ok(effective("PAD2") == "TOGGLEGAMEMENU", "close group still on")
-SlashCmdList.FOREVERPAD("context merchant on")
-SlashCmdList.FOREVERPAD("context off") refresh()
+SlashCmdList.CHARACTERCONTROLPAD("context merchant on")
+SlashCmdList.CHARACTERCONTROLPAD("context off") refresh()
 ok(effective("PAD2") == "ACTIONBUTTON2" and effective("PAD4") == "ACTIONBUTTON4", "context controls off -> nothing")
-SlashCmdList.FOREVERPAD("context on") refresh()
-ok(effective("PAD4") == "CLICK ForeverPadContextPAD4:LeftButton", "back on")
+SlashCmdList.CHARACTERCONTROLPAD("context on") refresh()
+ok(effective("PAD4") == "CLICK CharacterControlPadContextPAD4:LeftButton", "back on")
 
 ---------------- combat ----------------
 combat = true
@@ -202,12 +202,12 @@ refresh()
 ok(layers[ctxOwner()] == nil, "no rebinding during combat")
 combat = false
 fire("PLAYER_REGEN_ENABLED")
-ok(effective("PAD4") == "CLICK ForeverPadContextPAD4:LeftButton", "layer back after combat")
+ok(effective("PAD4") == "CLICK CharacterControlPadContextPAD4:LeftButton", "layer back after combat")
 
 ---------------- engine disabled / quick bind ----------------
-SlashCmdList.FOREVERPAD("off") refresh()
-ok(layers[ctxOwner()] == nil, "ForeverPad disabled -> no context layer")
-SlashCmdList.FOREVERPAD("on") refresh()
+SlashCmdList.CHARACTERCONTROLPAD("off") refresh()
+ok(layers[ctxOwner()] == nil, "CharacterControlPad disabled -> no context layer")
+SlashCmdList.CHARACTERCONTROLPAD("on") refresh()
 ok(effective("PAD4") ~= "ACTIONBUTTON4", "enabled again")
 local qbActive = ns.QuickBind.IsActive
 ns.QuickBind.IsActive = function() return true end refresh()
@@ -224,19 +224,19 @@ end
 GossipFrame = Plain({ GreetingPanel = { ScrollBox = { GetFrames = function() return { opts[3], opts[1], opts[2], opts[4] } end } } })
 uiPanels.left = GossipFrame
 refresh()
-ok(ForeverPadContextPAD1.attributes.clickbutton == opts[2], "gossip: first selectable entry (title skipped, sorted top-down)")
-ok(ForeverPadContextHighlight.shown and ForeverPadContextHighlight.allPoints == opts[2], "selection highlighted")
-ok(effective("PADDDOWN") == "CLICK ForeverPadContextFnPADDDOWN:LeftButton", "D-pad Down bound to navigation")
-ForeverPadContextFnPADDDOWN.scripts.OnClick(ForeverPadContextFnPADDDOWN)
-ok(ForeverPadContextPAD1.attributes.clickbutton == opts[3] and ForeverPadContextHighlight.allPoints == opts[3], "Down -> next option")
-ForeverPadContextFnPADDUP.scripts.OnClick(ForeverPadContextFnPADDUP)
-ForeverPadContextFnPADDUP.scripts.OnClick(ForeverPadContextFnPADDUP)
-ok(ForeverPadContextPAD1.attributes.clickbutton == opts[4], "Up wraps around")
-ok(ForeverPadContextHints.text.text:find("D-pad", 1, true) and ForeverPadContextHints.text.text:find("Confirm", 1, true), "gossip hint")
+ok(CharacterControlPadContextPAD1.attributes.clickbutton == opts[2], "gossip: first selectable entry (title skipped, sorted top-down)")
+ok(CharacterControlPadContextHighlight.shown and CharacterControlPadContextHighlight.allPoints == opts[2], "selection highlighted")
+ok(effective("PADDDOWN") == "CLICK CharacterControlPadContextFnPADDDOWN:LeftButton", "D-pad Down bound to navigation")
+CharacterControlPadContextFnPADDDOWN.scripts.OnClick(CharacterControlPadContextFnPADDDOWN)
+ok(CharacterControlPadContextPAD1.attributes.clickbutton == opts[3] and CharacterControlPadContextHighlight.allPoints == opts[3], "Down -> next option")
+CharacterControlPadContextFnPADDUP.scripts.OnClick(CharacterControlPadContextFnPADDUP)
+CharacterControlPadContextFnPADDUP.scripts.OnClick(CharacterControlPadContextFnPADDUP)
+ok(CharacterControlPadContextPAD1.attributes.clickbutton == opts[4], "Up wraps around")
+ok(CharacterControlPadContextHints.text.text:find("D-pad", 1, true) and CharacterControlPadContextHints.text.text:find("Confirm", 1, true), "gossip hint")
 refresh()
-ok(ForeverPadContextPAD1.attributes.clickbutton == opts[4], "selection kept across refreshes")
+ok(CharacterControlPadContextPAD1.attributes.clickbutton == opts[4], "selection kept across refreshes")
 GossipFrame.shown = false uiPanels.left = nil refresh()
-ok(not ForeverPadContextHighlight.shown and layers[ctxOwner()] == nil, "gossip closed -> highlight and layer gone")
+ok(not CharacterControlPadContextHighlight.shown and layers[ctxOwner()] == nil, "gossip closed -> highlight and layer gone")
 
 ---------------- quest reward ----------------
 local c1, c2 = Plain({ type = "choice", top = 300 }), Plain({ type = "choice", top = 260 })
@@ -245,22 +245,22 @@ QuestInfoRewardsFrame = Plain({ RewardButtons = { c2, c1, Plain({ type = "reward
 QuestFrameCompleteQuestButton = Plain({ IsEnabled = function() return true end })
 uiPanels.left = QuestFrame
 refresh()
-ok(ForeverPadContextPAD1.attributes.clickbutton == c1, "reward: first choice selected")
+ok(CharacterControlPadContextPAD1.attributes.clickbutton == c1, "reward: first choice selected")
 local idx, n = Context.NavIndex()
 ok(n == 3, "two choices + Complete (plain rewards are not choices)")
-ForeverPadContextPAD1.scripts.PostClick(ForeverPadContextPAD1) -- the secure click picked the choice
+CharacterControlPadContextPAD1.scripts.PostClick(CharacterControlPadContextPAD1) -- the secure click picked the choice
 runTimers()
-ok(ForeverPadContextPAD1.attributes.clickbutton == QuestFrameCompleteQuestButton, "after picking a reward, Cross completes the quest")
+ok(CharacterControlPadContextPAD1.attributes.clickbutton == QuestFrameCompleteQuestButton, "after picking a reward, Cross completes the quest")
 QuestFrameRewardPanel.shown = false
 QuestFrameDetailPanel = Plain({}) QuestFrameAcceptButton = Plain({})
 refresh()
-ok(ForeverPadContextPAD1.attributes.clickbutton == QuestFrameAcceptButton and effective("PADDDOWN") == "OPENALLBAGS", "quest detail: Cross accepts, no D-pad list for one button")
+ok(CharacterControlPadContextPAD1.attributes.clickbutton == QuestFrameAcceptButton and effective("PADDDOWN") == "OPENALLBAGS", "quest detail: Cross accepts, no D-pad list for one button")
 QuestFrame.shown = false uiPanels.left = nil refresh()
 
 ---------------- loot / mail / trainer / bank ----------------
 LootFrame = Plain({}) refresh()
-ok(effective("PAD1") == "CLICK ForeverPadContextFnPAD1:LeftButton", "loot: Cross = loot all")
-ForeverPadContextFnPAD1.scripts.OnClick(ForeverPadContextFnPAD1)
+ok(effective("PAD1") == "CLICK CharacterControlPadContextFnPAD1:LeftButton", "loot: Cross = loot all")
+CharacterControlPadContextFnPAD1.scripts.OnClick(CharacterControlPadContextFnPAD1)
 ok(#looted == 3 and looted[1] == 3, "loots every slot")
 ok(effective("PAD2") == "TOGGLEGAMEMENU", "loot window closable with Circle")
 LootFrame.shown = false refresh()
@@ -272,53 +272,53 @@ local emptyEntry = Plain({ top = 350, GetSlotIndex = function() return 9 end }) 
 LootFrame = Plain({ ScrollBox = { GetFrames = function() return { e3, emptyEntry, e1, e2 } end } })
 looted = {}
 refresh()
-ok(effective("PAD1") == "CLICK ForeverPadContextFnPAD1:LeftButton" and effective("PAD3") == "CLICK ForeverPadContextFnPAD3:LeftButton", "loot list: Cross and Square bound")
-ok(effective("PADDDOWN") == "CLICK ForeverPadContextFnPADDDOWN:LeftButton" and effective("PAD2") == "TOGGLEGAMEMENU", "loot list: D-pad chooses, Circle closes")
-ok(ForeverPadContextHighlight.shown and ForeverPadContextHighlight.allPoints == e1, "first item selected (entries without an item skipped, sorted top-down)")
-ForeverPadContextFnPADDDOWN.scripts.OnClick(ForeverPadContextFnPADDDOWN)
-ok(ForeverPadContextHighlight.allPoints == e2, "Down selects the next item")
-ForeverPadContextFnPAD1.scripts.OnClick(ForeverPadContextFnPAD1)
+ok(effective("PAD1") == "CLICK CharacterControlPadContextFnPAD1:LeftButton" and effective("PAD3") == "CLICK CharacterControlPadContextFnPAD3:LeftButton", "loot list: Cross and Square bound")
+ok(effective("PADDDOWN") == "CLICK CharacterControlPadContextFnPADDDOWN:LeftButton" and effective("PAD2") == "TOGGLEGAMEMENU", "loot list: D-pad chooses, Circle closes")
+ok(CharacterControlPadContextHighlight.shown and CharacterControlPadContextHighlight.allPoints == e1, "first item selected (entries without an item skipped, sorted top-down)")
+CharacterControlPadContextFnPADDDOWN.scripts.OnClick(CharacterControlPadContextFnPADDDOWN)
+ok(CharacterControlPadContextHighlight.allPoints == e2, "Down selects the next item")
+CharacterControlPadContextFnPAD1.scripts.OnClick(CharacterControlPadContextFnPAD1)
 ok(#looted == 1 and looted[1] == 2, "Cross takes only the selected item")
 e2.shown = false runTimers()
-ok(ForeverPadContextHighlight.allPoints == e3, "after taking it, the selection stays in place (next item)")
-local lootHint = ForeverPadContextHints.text.text
+ok(CharacterControlPadContextHighlight.allPoints == e3, "after taking it, the selection stays in place (next item)")
+local lootHint = CharacterControlPadContextHints.text.text
 ok(lootHint:find("Take", 1, true) and lootHint:find("Loot all", 1, true) and lootHint:find("D-pad", 1, true) and lootHint:find("Close", 1, true), "loot hint: " .. lootHint)
-ForeverPadContextFnPAD3.scripts.OnClick(ForeverPadContextFnPAD3)
+CharacterControlPadContextFnPAD3.scripts.OnClick(CharacterControlPadContextFnPAD3)
 ok(#looted == 4, "Square takes everything")
 e1.shown = false e3.shown = false refresh()
-ok(not ForeverPadContextHighlight.shown and effective("PAD3") == "ACTIONBUTTON3", "nothing left -> no selection, Square back to normal")
+ok(not CharacterControlPadContextHighlight.shown and effective("PAD3") == "ACTIONBUTTON3", "nothing left -> no selection, Square back to normal")
 LootFrame.shown = false refresh()
 e1.shown, e2.shown, e3.shown = true, true, true
-LootFrame.shown = true ForeverPadContextFnPADDDOWN.scripts.OnClick(ForeverPadContextFnPADDDOWN) refresh()
+LootFrame.shown = true CharacterControlPadContextFnPADDDOWN.scripts.OnClick(CharacterControlPadContextFnPADDDOWN) refresh()
 LootFrame.shown = false refresh() LootFrame.shown = true refresh()
-ok(ForeverPadContextHighlight.allPoints == e1, "reopened loot window starts at the first item")
+ok(CharacterControlPadContextHighlight.allPoints == e1, "reopened loot window starts at the first item")
 LootFrame.shown = false refresh()
 MailFrame = Plain({}) InboxFrame = Plain({}) OpenAllMail = Plain({}) refresh()
-ok(ForeverPadContextPAD1.attributes.clickbutton == OpenAllMail and effective("PAD1") == "CLICK ForeverPadContextPAD1:LeftButton", "mail: Cross opens all")
+ok(CharacterControlPadContextPAD1.attributes.clickbutton == OpenAllMail and effective("PAD1") == "CLICK CharacterControlPadContextPAD1:LeftButton", "mail: Cross opens all")
 MailFrame.shown = false InboxFrame.shown = false
 ClassTrainerFrame = Plain({}) ClassTrainerTrainButton = Plain({ IsEnabled = function() return false end }) refresh()
 ok(effective("PAD1") == "ACTIONBUTTON1", "trainer: nothing selected -> Cross normal")
 ClassTrainerTrainButton.IsEnabled = function() return true end refresh()
-ok(ForeverPadContextPAD1.attributes.clickbutton == ClassTrainerTrainButton, "trainer: Cross learns")
+ok(CharacterControlPadContextPAD1.attributes.clickbutton == ClassTrainerTrainButton, "trainer: Cross learns")
 ClassTrainerFrame.shown = false
 BankFrame = Plain({}) local bankItem = Plain({ GetBankTabID = function() return 1 end, GetContainerSlotID = function() return 1 end })
 mouseFocus = bankItem refresh()
-ok(ForeverPadContextPAD3.attributes.clickbutton == bankItem and effective("PAD3") == "CLICK ForeverPadContextPAD3:RightButton", "bank: Square moves bank item")
+ok(CharacterControlPadContextPAD3.attributes.clickbutton == bankItem and effective("PAD3") == "CLICK CharacterControlPadContextPAD3:RightButton", "bank: Square moves bank item")
 mouseFocus = bagItem refresh()
-ok(ForeverPadContextPAD3.attributes.clickbutton == bagItem, "bank: Square moves bag item")
+ok(CharacterControlPadContextPAD3.attributes.clickbutton == bagItem, "bank: Square moves bag item")
 BankFrame.shown = false mouseFocus = nil refresh()
 ok(layers[ctxOwner()] == nil, "all closed -> no layer")
 
 ---------------- panel ----------------
-SlashCmdList.FOREVERPAD("")
-local cf = ForeverPadConfigFrame
+SlashCmdList.CHARACTERCONTROLPAD("")
+local cf = CharacterControlPadConfigFrame
 ok(cf.pageTabs.windows and cf.pageTabs.windows.text == "Windows", "settings window has the Windows tab")
 cf.pageTabs.windows.scripts.OnClick()
-local cp = ForeverPadContextPanel
+local cp = CharacterControlPadContextPanel
 ok(cp.shown and cf.pages.windows.shown and not cf.pages.controller.shown, "Windows tab shows the context page")
 ok(cp.heading.text == "Context controls", "context page heading")
-cf:Hide() SlashCmdList.FOREVERPAD("context")
-ok(cf.shown and cf.pages.windows.shown, "/fpad context opens the Windows page")
+cf:Hide() SlashCmdList.CHARACTERCONTROLPAD("context")
+ok(cf.shown and cf.pages.windows.shown, "/ccp context opens the Windows page")
 local function check(label) for _, c in ipairs(cp.children) do if rawget(c, "label") and c.label.text == label then return c end end end
 local lootCheck = check("Loot")
 ok(lootCheck and lootCheck.checked == true, "group checkbox reflects setting")
@@ -327,14 +327,14 @@ ok(ns.db.context.off.loot == true, "unchecking turns the group off")
 LootFrame.shown = true refresh()
 ok(effective("PAD1") == "ACTIONBUTTON1", "loot group off -> Cross normal")
 lootCheck.checked = true lootCheck.scripts.OnClick(lootCheck)
-ok(ns.db.context.off.loot == nil and effective("PAD1") == "CLICK ForeverPadContextFnPAD1:LeftButton", "checking turns it back on immediately")
+ok(ns.db.context.off.loot == nil and effective("PAD1") == "CLICK CharacterControlPadContextFnPAD1:LeftButton", "checking turns it back on immediately")
 local master = check("Enable context controls")
 master.checked = false master.scripts.OnClick(master)
 ok(ns.db.context.enabled == false and layers[ctxOwner()] == nil and lootCheck.enabled == false, "master switch off disables groups")
 master.checked = true master.scripts.OnClick(master)
 local hintCheck = check("Show button hints under the window")
 hintCheck.checked = false hintCheck.scripts.OnClick(hintCheck)
-ok(ns.db.context.hints == false and not ForeverPadContextHints.shown, "hints can be hidden")
+ok(ns.db.context.hints == false and not CharacterControlPadContextHints.shown, "hints can be hidden")
 LootFrame.shown = false refresh()
 
 ---------------- locale ----------------

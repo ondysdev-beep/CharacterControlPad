@@ -54,27 +54,27 @@ MainActionBar = NewWidget()
 
 local ns = {}
 for _, f in ipairs({ "Core.lua", "Locale.lua", "Data.lua", "Profiles.lua", "BindingEngine.lua", "Compat.lua", "Commands.lua", "ConfigWindow.lua", "ActionPicker.lua", "QuickBind.lua" }) do
-  assert(loadfile(ROOT .. f))("ForeverPad", ns)
+  assert(loadfile(ROOT .. f))("CharacterControlPad", ns)
 end
 local core = eventFrames[1]
 local function fire(e, ...) core.scripts.OnEvent(core, e, ...) end
 local passed = 0
 local function ok(cond, msg) if not cond then error("FAIL: " .. msg, 2) end passed = passed + 1 end
 
-fire("ADDON_LOADED", "ForeverPad") fire("PLAYER_LOGIN")
-local db = ForeverPadDB
-ForeverPadDB.profiles.Default.bindings = {} -- start empty, like a player building their own layout
+fire("ADDON_LOADED", "CharacterControlPad") fire("PLAYER_LOGIN")
+local db = CharacterControlPadDB
+CharacterControlPadDB.profiles.Default.bindings = {} -- start empty, like a player building their own layout
 ns.Engine.Apply("test")
 
-SlashCmdList.FOREVERPAD("") -- open config
-local cf = ForeverPadConfigFrame
+SlashCmdList.CHARACTERCONTROLPAD("") -- open config
+local cf = CharacterControlPadConfigFrame
 ok(cf.shown, "config open")
 cf.quickBind.scripts.OnClick()
 ok(ns.QuickBind.IsActive(), "quick bind starts from config button")
 ok(not cf.shown, "config hidden during quick bind")
-local cap = ForeverPadQuickBindCapture
+local cap = CharacterControlPadQuickBindCapture
 ok(cap.shown and cap.gamepad == true and cap.propagate == false, "capture frame: gamepad on, propagation off")
-local banner = ForeverPadQuickBindBanner
+local banner = CharacterControlPadQuickBindBanner
 ok(banner.shown, "banner shown")
 
 local overlays = {}
@@ -131,12 +131,12 @@ ok(not overlays[103].shown, "overlays hidden after stop")
 ok(cf.shown, "config window reopened")
 
 -- combat stops mode
-SlashCmdList.FOREVERPAD("bind")
-ok(ns.QuickBind.IsActive(), "/fpad bind starts")
+SlashCmdList.CHARACTERCONTROLPAD("bind")
+ok(ns.QuickBind.IsActive(), "/ccp bind starts")
 combat = true
 fire("PLAYER_REGEN_DISABLED")
 ok(not ns.QuickBind.IsActive() and not cap.shown, "combat stops quick bind")
-SlashCmdList.FOREVERPAD("bind")
+SlashCmdList.CHARACTERCONTROLPAD("bind")
 ok(not ns.QuickBind.IsActive(), "cannot start in combat")
 combat = false
 

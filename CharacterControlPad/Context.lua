@@ -1,4 +1,4 @@
--- ForeverPad - context controls
+-- CharacterControlPad - context controls
 -- While a game window is open, a few controller buttons temporarily get a meaning that fits it:
 --   Circle      closes windows (the game's own Esc command, TOGGLEGAMEMENU)
 --   merchant    Cross buys the hovered merchant item, Square sells the hovered bag item,
@@ -14,7 +14,7 @@
 --   * only unmodified buttons are used, so L1/R1 combos keep their normal actions;
 --   * clicks go through a SecureActionButton ("type" = "click", attribute "clickbutton" = the Blizzard
 --     button). The binding press is a hardware event, so the Blizzard button runs untainted, exactly
---     as if the player clicked it with the mouse. ForeverPad calls no protected function itself;
+--     as if the player clicked it with the mouse. CharacterControlPad calls no protected function itself;
 --   * bindings may only change out of combat: the layer is dropped when combat starts
 --     (PLAYER_REGEN_DISABLED, still before the lockdown) and comes back after it. In combat the
 --     player's own layout always applies.
@@ -44,7 +44,7 @@ local highlight, hintFrame
 local nav = { list = {}, index = 1, signature = "" }
 
 ------------------------------------------------------------------------
--- Settings (account wide): ForeverPadDB.context = { enabled, hints, off = { [group] = true } }
+-- Settings (account wide): CharacterControlPadDB.context = { enabled, hints, off = { [group] = true } }
 ------------------------------------------------------------------------
 
 function Context.Settings()
@@ -578,7 +578,7 @@ end
 local function Proxy(key)
 	local p = proxies[key]
 	if not p then
-		p = CreateFrame("Button", "ForeverPadContext" .. key, UIParent, "SecureActionButtonTemplate")
+		p = CreateFrame("Button", "CharacterControlPadContext" .. key, UIParent, "SecureActionButtonTemplate")
 		p:SetSize(1, 1)
 		-- Both edges registered: SecureActionButton_OnClick acts on exactly one of them
 		-- (useOnKeyDown below), whichever way the client reports the binding press.
@@ -594,7 +594,7 @@ end
 local function FuncButton(key)
 	local b = funcButtons[key]
 	if not b then
-		b = CreateFrame("Button", "ForeverPadContextFn" .. key, UIParent)
+		b = CreateFrame("Button", "CharacterControlPadContextFn" .. key, UIParent)
 		b:SetSize(1, 1)
 		b:RegisterForClicks("AnyDown")
 		b:SetScript("OnClick", function(self)
@@ -660,7 +660,7 @@ local function UpdateHighlight(target)
 		return
 	end
 	if not highlight then
-		highlight = CreateFrame("Frame", "ForeverPadContextHighlight", UIParent)
+		highlight = CreateFrame("Frame", "CharacterControlPadContextHighlight", UIParent)
 		highlight:SetFrameStrata("FULLSCREEN_DIALOG")
 		highlight.fill = highlight:CreateTexture(nil, "OVERLAY")
 		highlight.fill:SetAllPoints()
@@ -716,7 +716,7 @@ local function UpdateHints(c)
 		return
 	end
 	if not hintFrame then
-		hintFrame = CreateFrame("Frame", "ForeverPadContextHints", UIParent)
+		hintFrame = CreateFrame("Frame", "CharacterControlPadContextHints", UIParent)
 		hintFrame:SetFrameStrata("FULLSCREEN_DIALOG")
 		hintFrame.bg = hintFrame:CreateTexture(nil, "BACKGROUND")
 		hintFrame.bg:SetAllPoints()
@@ -759,7 +759,7 @@ function Context.Refresh()
 		end
 	end
 	if changed then
-		owner = owner or CreateFrame("Frame", "ForeverPadContextOwner")
+		owner = owner or CreateFrame("Frame", "CharacterControlPadContextOwner")
 		ClearLayer()
 		for key, spec in pairs(c.want) do
 			if Bind(key, spec) then
@@ -824,7 +824,7 @@ ns.On("PLAYER_REGEN_ENABLED", function()
 end)
 
 ------------------------------------------------------------------------
--- /fpad context
+-- /ccp context
 ------------------------------------------------------------------------
 
 local function GroupLabel(group)
@@ -850,7 +850,7 @@ ns.RegisterCommand("context", "context controls window; on | off | status | hint
 			list[#list + 1] = string.format("%s=%s", group, s.off[group] and "off" or "on")
 		end
 		ns.Printf("Context controls %s, hints %s. Groups: %s", s.enabled and "ON" or "OFF", s.hints and "on" or "off", table.concat(list, ", "))
-		ns.Print("/fpad context on | off | hints on|off | <group> on|off")
+		ns.Print("/ccp context on | off | hints on|off | <group> on|off")
 		return
 	end
 	Context.Refresh()

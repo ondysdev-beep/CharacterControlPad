@@ -1,5 +1,5 @@
--- ForeverPad - first-run setup wizard
--- Shown once at login until finished or skipped (ForeverPadDB.setupDone); /fpad setup reopens it.
+-- CharacterControlPad - first-run setup wizard
+-- Shown once at login until finished or skipped (CharacterControlPadDB.setupDone); /ccp setup reopens it.
 --   Step 1: modifier preset (L1+R1 recommended, L2+R2, L1+R1+L2, none)
 --   Step 2: start empty (player assigns everything) or from the template layout
 --   Done:   start quick bind / open settings / close
@@ -77,7 +77,7 @@ local function Finish(source)
 end
 
 local function Create()
-	frame = ns.CreatePanelFrame("ForeverPadSetupWizard", WIDTH, HEIGHT)
+	frame = ns.CreatePanelFrame("CharacterControlPadSetupWizard", WIDTH, HEIGHT)
 	frame:SetPoint("CENTER")
 	frame.title:SetText(L.SETUP_TITLE)
 

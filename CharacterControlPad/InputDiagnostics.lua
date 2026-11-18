@@ -1,8 +1,8 @@
--- ForeverPad - Input diagnostics (Phase 2)
+-- CharacterControlPad - Input diagnostics (Phase 2)
 -- Shows raw gamepad input as the client delivers it to an addon frame:
 -- button down/up, sticks, modifier state, device connect/disconnect, interface-style changes.
--- Never triggers any action. Listening is opt-in (/fpad debug listen) and only toggled out of combat.
--- Nothing is printed or stored unless debug mode is on (any /fpad debug command turns it on).
+-- Never triggers any action. Listening is opt-in (/ccp debug listen) and only toggled out of combat.
+-- Nothing is printed or stored unless debug mode is on (any /ccp debug command turns it on).
 --
 -- v0.1 finding: with SetPropagateKeyboardInput(true) the frame receives OnGamePadButtonDown
 -- but never OnGamePadButtonUp. Releases are therefore detected by polling
@@ -45,7 +45,7 @@ local lastModifierRecord -- { name = physical name, t = GetTime() }
 -- Log (ring buffer in SavedVariables, readable from disk after /reload)
 ------------------------------------------------------------------------
 
--- Only records while debug mode is on (/fpad debug ...); otherwise nothing is stored.
+-- Only records while debug mode is on (/ccp debug ...); otherwise nothing is stored.
 local function Log(kind, a, b, c)
 	if not (ns.db and ns.db.debug) then
 		return
@@ -188,7 +188,7 @@ end
 local function IdentifyPrompt()
 	local name = IDENTIFY_SEQUENCE[identifyStep]
 	if name then
-		ns.Printf("|cffffff00IDENTIFY %d/%d:|r press |cffffff00%s|r  (/fpad debug skip if nothing appears)",
+		ns.Printf("|cffffff00IDENTIFY %d/%d:|r press |cffffff00%s|r  (/ccp debug skip if nothing appears)",
 			identifyStep, #IDENTIFY_SEQUENCE, name)
 		return
 	end
@@ -197,7 +197,7 @@ local function IdentifyPrompt()
 	for _, physical in ipairs(IDENTIFY_SEQUENCE) do
 		ns.Printf("  %s = %s", physical, tostring(ns.db.identify[physical]))
 	end
-	ns.Print("Saved to ForeverPadDB.identify. /reload writes it to disk.")
+	ns.Print("Saved to CharacterControlPadDB.identify. /reload writes it to disk.")
 end
 
 local function IdentifyRecord(result, isModifier)
@@ -297,7 +297,7 @@ local function EnsureFrame()
 	if frame then
 		return frame
 	end
-	frame = CreateFrame("Frame", "ForeverPadInputDiagFrame", UIParent)
+	frame = CreateFrame("Frame", "CharacterControlPadInputDiagFrame", UIParent)
 	frame:SetSize(1, 1)
 	frame:SetPoint("TOPLEFT")
 	frame:Hide()
@@ -357,7 +357,7 @@ local function StartListening()
 	listening = true
 	ns.Printf("Listening ON (interface style %s). EnableGamePadButton=%s EnableGamePadStick=%s Propagate=%s",
 		CurrentStyleName(), results.EnableGamePadButton, results.EnableGamePadStick, results.SetPropagateKeyboardInput)
-	ns.Print("Press controller buttons. /fpad debug listen again to stop, /fpad debug sticks to print stick values.")
+	ns.Print("Press controller buttons. /ccp debug listen again to stop, /ccp debug sticks to print stick values.")
 	Log("LISTEN_ON", CurrentStyleName())
 	return true
 end

@@ -1,6 +1,6 @@
--- ForeverPad - settings window
+-- CharacterControlPad - settings window
 --
---  ┌ ForeverPad 0.11.0 ─────────────────────────────────────────────── ✕ ┐
+--  ┌ CharacterControlPad 0.11.0 ─────────────────────────────────────────────── ✕ ┐
 --  │ [Controller] [Windows] [Settings]                 [Profile: Default] │
 --  │ Layer: [No modifier] [L1] [R1] [L1+R1]                               │
 --  │ L2  [i] Spell        ╭──────────────╮        R2  [i] Spell           │
@@ -29,7 +29,7 @@ local PAGE_TOP, PAGE_BOTTOM = -66, 56
 local PAGE_W = WIDTH - 32
 local MAX_LAYERS = 8
 
-local MEDIA = "Interface\\AddOns\\ForeverPad\\Media\\"
+local MEDIA = "Interface\\AddOns\\CharacterControlPad\\Media\\"
 ns.MEDIA = MEDIA
 
 -- Controller page geometry
@@ -203,10 +203,10 @@ function ns.CreateText(parent, font, x, y, width)
 	return fs
 end
 
--- Private tooltip: the shared GameTooltip is never re-fonted or otherwise touched by ForeverPad.
+-- Private tooltip: the shared GameTooltip is never re-fonted or otherwise touched by CharacterControlPad.
 function ns.GetTooltip()
 	if not ns.tooltip then
-		local ok, tt = pcall(CreateFrame, "GameTooltip", "ForeverPadTooltip", UIParent, "GameTooltipTemplate")
+		local ok, tt = pcall(CreateFrame, "GameTooltip", "CharacterControlPadTooltip", UIParent, "GameTooltipTemplate")
 		ns.tooltip = (ok and tt) or GameTooltip
 	end
 	return ns.tooltip
@@ -895,7 +895,7 @@ local function NewPage()
 end
 
 local function Create()
-	frame = ns.CreatePanelFrame("ForeverPadConfigFrame", WIDTH, HEIGHT)
+	frame = ns.CreatePanelFrame("CharacterControlPadConfigFrame", WIDTH, HEIGHT)
 	frame:SetPoint("CENTER")
 	frame.title:SetText(L.TITLE .. "  " .. ns.VERSION)
 
@@ -1079,9 +1079,9 @@ ns.On("ACTIONBAR_SLOT_CHANGED", Config.Refresh)
 ns.On("ACTIONBAR_PAGE_CHANGED", Config.Refresh)
 ns.On("UPDATE_BONUS_ACTIONBAR", Config.Refresh)
 
-ns.RegisterCommand("config", "open the configuration window (same as /fpad)", Config.Toggle)
+ns.RegisterCommand("config", "open the configuration window (same as /ccp)", Config.Toggle)
 
 -- Entry in the addon compartment menu next to the minimap (## AddonCompartmentFunc in the TOC).
-function ForeverPad_OnAddonCompartmentClick()
+function CharacterControlPad_OnAddonCompartmentClick()
 	Config.Toggle()
 end

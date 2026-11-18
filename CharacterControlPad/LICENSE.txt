@@ -22,6 +22,6 @@ SOFTWARE.
 
 ---
 
-The bundled font ForeverPad/Fonts/NotoSans-Regular.ttf is not covered by this
+The bundled font CharacterControlPad/Fonts/NotoSans-Regular.ttf is not covered by this
 license. It is licensed under the SIL Open Font License 1.1, see
-ForeverPad/Fonts/OFL.txt.
+CharacterControlPad/Fonts/OFL.txt.

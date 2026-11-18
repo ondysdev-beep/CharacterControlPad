@@ -1,4 +1,4 @@
--- ForeverPad - compatibility with other addons
+-- CharacterControlPad - compatibility with other addons
 -- * ConsolePort binds controller buttons too -> reported as a conflict.
 -- * Bar addons (Bartender4, Dominos, ElvUI) may replace the Blizzard bars -> hint: their buttons can be
 --   bound in quick bind mode (hover them), stored as "click" actions (SetOverrideBindingClick).

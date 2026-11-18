@@ -1,6 +1,6 @@
--- ForeverPad - context controls panel (the "Windows" page of the settings window)
+-- CharacterControlPad - context controls panel (the "Windows" page of the settings window)
 -- Switches the context layer (Context.lua) on/off as a whole, per window group, and its hint line.
--- Settings are account wide (ForeverPadDB.context) and take effect immediately (out of combat).
+-- Settings are account wide (CharacterControlPadDB.context) and take effect immediately (out of combat).
 
 local _, ns = ...
 
@@ -59,7 +59,7 @@ local function Changed()
 end
 
 function Panel.Build(parent)
-	frame = CreateFrame("Frame", "ForeverPadContextPanel", parent)
+	frame = CreateFrame("Frame", "CharacterControlPadContextPanel", parent)
 	frame:SetAllPoints(parent)
 
 	frame.heading = ns.CreateHeading(frame, L.CTX_TITLE, 0, 0)

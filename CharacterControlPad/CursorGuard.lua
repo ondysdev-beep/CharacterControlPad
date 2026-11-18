@@ -1,4 +1,4 @@
--- ForeverPad - gamepad cursor guard
+-- CharacterControlPad - gamepad cursor guard
 -- Safety net for "the controller suddenly stops controlling the character": when the game's
 -- gamepad cursor is on (stick moves the cursor, R1 / R2 click) and the mouse has not moved for a
 -- few seconds, a short hint tells the player how to get back. Read-only: addons may not switch the
@@ -15,7 +15,7 @@ ns.CursorGuard = Guard
 local IDLE_SECONDS = 2.5
 local INTERVAL = 0.25
 
-local frame = CreateFrame("Frame", "ForeverPadCursorGuard", UIParent)
+local frame = CreateFrame("Frame", "CharacterControlPadCursorGuard", UIParent)
 frame:SetSize(520, 34)
 frame:SetPoint("TOP", UIParent, "TOP", 0, -140)
 frame:SetFrameStrata("HIGH")

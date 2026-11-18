@@ -56,7 +56,7 @@ MainActionBar = NewWidget()
 local ns = {}
 for _, f in ipairs({ "Core.lua", "Locale.lua", "Data.lua", "Profiles.lua", "BindingEngine.lua", "Compat.lua", "Commands.lua", "ConfigWindow.lua",
   "ActionPicker.lua", "QuickBind.lua", "ModifierPanel.lua", "ProfilesPanel.lua", "Wizard.lua", "CursorGuard.lua" }) do
-  assert(loadfile(ROOT .. f))("ForeverPad", ns)
+  assert(loadfile(ROOT .. f))("CharacterControlPad", ns)
 end
 local core = eventFrames[1]
 local function fire(e, ...) core.scripts.OnEvent(core, e, ...) end
@@ -65,9 +65,9 @@ local function ok(cond, msg) if not cond then error("FAIL: " .. msg, 2) end pass
 local function findChild(f, text) for _, c in ipairs(f.children or {}) do if rawget(c, "text") == text then return c end local r = findChild(c, text) if r then return r end end end
 
 ---------------- wizard ----------------
-fire("ADDON_LOADED", "ForeverPad") fire("PLAYER_LOGIN")
-local db = ForeverPadDB
-local wiz = ForeverPadSetupWizard
+fire("ADDON_LOADED", "CharacterControlPad") fire("PLAYER_LOGIN")
+local db = CharacterControlPadDB
+local wiz = CharacterControlPadSetupWizard
 ok(wiz and wiz.shown, "wizard shows on first login")
 findChild(wiz, "L1 + R1  (recommended)").scripts.OnClick()
 local emptyBtn = findChild(wiz, "Empty - I will assign everything myself")
@@ -78,7 +78,7 @@ ok(db.setupDone == true and next(p.bindings) == nil, "empty profile chosen, setu
 ok(p.modifiers.SHIFT == "PADLSHOULDER" and C_CVar.GetCVar("GamePadEmulateShift") == "PADLSHOULDER", "L1+R1 applied")
 ok(next(overrides) == nil, "no bindings after empty setup")
 findChild(wiz, "Open settings").scripts.OnClick()
-ok(not wiz.shown and ForeverPadConfigFrame.shown, "finish opens settings")
+ok(not wiz.shown and CharacterControlPadConfigFrame.shown, "finish opens settings")
 
 -- wizard not shown again
 wiz.shown = false
@@ -86,17 +86,17 @@ fire("PLAYER_LOGIN")
 ok(not wiz.shown, "wizard not shown after setupDone")
 
 -- rerun with template + L2/R2
-SlashCmdList.FOREVERPAD("setup")
+SlashCmdList.CHARACTERCONTROLPAD("setup")
 findChild(wiz, "L2 + R2").scripts.OnClick()
 findChild(wiz, "Template - start from a ready layout").scripts.OnClick()
-ok(p.modifiers.SHIFT == "PADLTRIGGER" and overrides.PAD1 == "ACTIONBUTTON1", "template + L2/R2 via /fpad setup")
+ok(p.modifiers.SHIFT == "PADLTRIGGER" and overrides.PAD1 == "ACTIONBUTTON1", "template + L2/R2 via /ccp setup")
 findChild(wiz, "Close").scripts.OnClick()
 
 ---------------- modifier panel ----------------
-local cf = ForeverPadConfigFrame
-if not cf.shown then SlashCmdList.FOREVERPAD("") end
+local cf = CharacterControlPadConfigFrame
+if not cf.shown then SlashCmdList.CHARACTERCONTROLPAD("") end
 cf.pageTabs.settings.scripts.OnClick()
-local mp = ForeverPadModifierPanel
+local mp = CharacterControlPadModifierPanel
 ok(cf.pages.settings.shown and not cf.pages.controller.shown, "Settings tab shows the settings page")
 ok(mp.shown and mp.layers.text:find("4"), "modifier section shown, 4 layers")
 ok(cf.pages.settings.profileText.text:find("Default"), "settings page shows the active profile")
@@ -141,15 +141,15 @@ cf.cursorCheck.checked = false cf.cursorCheck.scripts.OnClick(cf.cursorCheck)
 ok(db.keepCursorOff == false and tempcvars.GamePadCursorAutoEnable == nil and C_CVar.GetCVar("GamePadCursorAutoEnable") == "1", "unchecking gives the cursor back to the game")
 ok(cf.compat.text:find("R2: modifier and also a gamepad cursor click"), "R2 (CTRL) flagged as cursor click: " .. tostring(cf.compat.text))
 ok(cf.pages.settings.cursorNote.text:find("R2"), "settings page shows the conflict")
-SlashCmdList.FOREVERPAD("cursor off")
-ok(db.keepCursorOff == true and tempcvars.GamePadCursorAutoEnable == "0", "/fpad cursor off")
-SlashCmdList.FOREVERPAD("off")
-ok(tempcvars.GamePadCursorAutoEnable == nil and tempcvars.GamePadCursorAutoDisableSticks == nil, "disabling ForeverPad restores the cursor settings")
-SlashCmdList.FOREVERPAD("on")
+SlashCmdList.CHARACTERCONTROLPAD("cursor off")
+ok(db.keepCursorOff == true and tempcvars.GamePadCursorAutoEnable == "0", "/ccp cursor off")
+SlashCmdList.CHARACTERCONTROLPAD("off")
+ok(tempcvars.GamePadCursorAutoEnable == nil and tempcvars.GamePadCursorAutoDisableSticks == nil, "disabling CharacterControlPad restores the cursor settings")
+SlashCmdList.CHARACTERCONTROLPAD("on")
 ok(tempcvars.GamePadCursorAutoEnable == "0" and tempcvars.GamePadCursorAutoDisableSticks == "2", "enabling keeps it off again")
 
 -- guard hint: gamepad cursor on + mouse still for 2.5 s
-local guard = ForeverPadCursorGuard
+local guard = CharacterControlPadCursorGuard
 local now, cursorOn, mx = 100, false, 10
 GetTime = function() return now end
 GetCursorPosition = function() return mx, 20 end
@@ -167,15 +167,15 @@ ok(guard.hint == true, "mouse still again -> hint again")
 cursorOn = false ns.CursorGuard.Check()
 ok(guard.hint == false, "cursor off (stick or jump) -> hint gone")
 cursorOn = true now = 120 ns.CursorGuard.Check()
-SlashCmdList.FOREVERPAD("cursor on") ns.CursorGuard.Check()
+SlashCmdList.CHARACTERCONTROLPAD("cursor on") ns.CursorGuard.Check()
 ok(guard.hint == false, "no hint when the player allows the gamepad cursor")
-SlashCmdList.FOREVERPAD("cursor off")
+SlashCmdList.CHARACTERCONTROLPAD("cursor off")
 GetTime = function() return 1 end
 
 ---------------- profiles panel ----------------
 ok(cf.profileButton.text == "Profile: Default", "profile button shows the active profile")
 cf.profileButton.scripts.OnClick()
-local pp = ForeverPadProfilesPanel
+local pp = CharacterControlPadProfilesPanel
 ok(pp.shown, "profile button opens the profiles dialog")
 ok(pp.active.text:find("Default"), "shows active profile")
 findChild(pp, "New empty").scripts.OnClick(findChild(pp, "New empty"))

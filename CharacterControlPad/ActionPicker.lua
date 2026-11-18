@@ -1,4 +1,4 @@
--- ForeverPad - action picker
+-- CharacterControlPad - action picker
 -- Opened from the configuration window for one combo. Three tabs (spec 4.4):
 --   Action bars   - 8 Blizzard bars x 12 buttons with their current icons (hidden bars included)
 --   Game commands - jump, autorun, interact, targeting ...
@@ -200,7 +200,7 @@ local function ShowTab(index)
 end
 
 local function Create()
-	frame = ns.CreatePanelFrame("ForeverPadActionPicker", WIDTH, HEIGHT)
+	frame = ns.CreatePanelFrame("CharacterControlPadActionPicker", WIDTH, HEIGHT)
 	ns.RegisterSidePanel(frame)
 
 	for i, tab in ipairs(TABS) do

@@ -1,4 +1,4 @@
--- ForeverPad - profiles panel
+-- CharacterControlPad - profiles panel
 -- List of profiles (click = use on this character), name box and actions:
 -- new empty, new from template, copy active, rename active, clear all bindings, delete active.
 -- Destructive actions (clear, delete) need a second click to confirm.
@@ -170,7 +170,7 @@ end
 ------------------------------------------------------------------------
 
 local function Create()
-	frame = ns.CreatePanelFrame("ForeverPadProfilesPanel", WIDTH, HEIGHT)
+	frame = ns.CreatePanelFrame("CharacterControlPadProfilesPanel", WIDTH, HEIGHT)
 	ns.RegisterSidePanel(frame)
 	frame.title:SetText(L.PROFILES_TITLE)
 	frame:HookScript("OnHide", ResetConfirm)

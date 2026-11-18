@@ -1,19 +1,19 @@
--- ForeverPad - localization (English + Czech)
+-- CharacterControlPad - localization (English + Czech)
 --
--- Language: ForeverPadDB.language = "auto" (default) | "enUS" | "csCZ"
+-- Language: CharacterControlPadDB.language = "auto" (default) | "enUS" | "csCZ"
 --   auto -> Czech when the Czech translation addon WowfCZ is enabled, otherwise English.
 -- The default WoW font lacks Czech glyphs (WowfCZ ships its own font), so in Czech the addon's
 -- own windows use the bundled Noto Sans (SIL OFL, Fonts/OFL.txt) through private font objects.
 -- Blizzard font objects and the shared GameTooltip are never modified.
--- Slash command help and /fpad debug output stay English.
+-- Slash command help and /ccp debug output stay English.
 
 local _, ns = ...
 
-local FONT_PATH = "Interface\\AddOns\\ForeverPad\\Fonts\\NotoSans-Regular.ttf"
+local FONT_PATH = "Interface\\AddOns\\CharacterControlPad\\Fonts\\NotoSans-Regular.ttf"
 ns.FONT_PATH = FONT_PATH
 
 local enUS = {
-	TITLE = "ForeverPad",
+	TITLE = "CharacterControlPad",
 	CHANGE = "Change",
 	NOT_ASSIGNED = "- not assigned -",
 	TAP = "(tap)",
@@ -29,7 +29,7 @@ local enUS = {
 	ENABLE = "Enable",
 	DISABLE = "Disable",
 	HINT = "Changes apply immediately. Hold a modifier on the controller to use its layer.",
-	ERRORS = "|cffff4444%d binding(s) could not be applied - type /fpad list for details.|r",
+	ERRORS = "|cffff4444%d binding(s) could not be applied - type /ccp list for details.|r",
 	COMBAT_LOCKED = "Bindings cannot be changed in combat.",
 	PICKER_TITLE = "Assign: %s",
 	TAB_BARS = "Action bars",
@@ -75,7 +75,7 @@ local enUS = {
 
 	-- quick bind mode
 	QB_BUTTON = "Bind on bars",
-	QB_TITLE = "ForeverPad - quick bind",
+	QB_TITLE = "CharacterControlPad - quick bind",
 	QB_HELP = "Hover an action button (Blizzard bars or another bar addon) and press a button or combo on the controller.\nRight-click a Blizzard bar button to remove its combos. Esc or Done to finish.",
 	QB_DONE = "Done",
 	QB_HOVER_FIRST = "|cffff8800Hover an action bar button with the mouse first.|r",
@@ -115,11 +115,11 @@ local enUS = {
 	PROFILES_CONFIRM = "Click again to confirm",
 	PROFILES_NEED_NAME = "|cffff8800Type a name first.|r",
 	PROFILES_DONE = "|cff00ff00Done.|r",
-	PROFILES_MORE = "... and %d more (use /fpad profile use <name>)",
+	PROFILES_MORE = "... and %d more (use /ccp profile use <name>)",
 
 	-- setup wizard
 	SETUP_BUTTON = "Setup wizard",
-	SETUP_TITLE = "ForeverPad - first setup",
+	SETUP_TITLE = "CharacterControlPad - first setup",
 	SETUP_SKIP = "Skip",
 	SETUP_STEP1 = "Step 1 of 2: which buttons should be modifiers?\nHolding a modifier switches to another layer of actions (L1+Cross, R1+Cross ...).",
 	SETUP_MODS_L1R1 = "L1 + R1  (recommended)",
@@ -149,7 +149,7 @@ local enUS = {
 	ENGINE_COMBAT_PENDING = "In combat - binding changes will be applied when combat ends.",
 	STATE_DISABLED = "disabled",
 	STATE_PAUSED = "paused (Blizzard gamepad UI)",
-	LOGIN_HINT = "  |cff888888/fpad = settings|r",
+	LOGIN_HINT = "  |cff888888/ccp = settings|r",
 
 	-- context controls (Context.lua, ContextPanel.lua)
 	CTX_BUTTON = "Windows",
@@ -212,7 +212,7 @@ local csCZ = {
 	ENABLE = "Zapnout",
 	DISABLE = "Vypnout",
 	HINT = "Změny platí okamžitě. Držením modifikátoru na ovladači přepneš na jeho vrstvu.",
-	ERRORS = "|cffff4444Nepodařilo se použít %d bind(ů) - podrobnosti vypíše /fpad list.|r",
+	ERRORS = "|cffff4444Nepodařilo se použít %d bind(ů) - podrobnosti vypíše /ccp list.|r",
 	COMBAT_LOCKED = "V boji nelze bindy měnit.",
 	PICKER_TITLE = "Přiřadit: %s",
 	TAB_BARS = "Action bary",
@@ -255,7 +255,7 @@ local csCZ = {
 	COMPAT_BARS = "|cffff8800Nalezen %s - pokud nahrazuje Blizzard bary, použij 'Přiřadit na barech' a najeď na jeho tlačítka.|r",
 
 	QB_BUTTON = "Přiřadit na barech",
-	QB_TITLE = "ForeverPad - rychlé přiřazení",
+	QB_TITLE = "CharacterControlPad - rychlé přiřazení",
 	QB_HELP = "Najeď myší na akční tlačítko (Blizzard bary nebo jiný bar addon) a zmáčkni tlačítko nebo kombinaci na ovladači.\nPravé tlačítko myši na Blizzard tlačítku smaže jeho kombinace. Esc nebo Hotovo režim ukončí.",
 	QB_DONE = "Hotovo",
 	QB_HOVER_FIRST = "|cffff8800Nejdřív najeď myší na akční tlačítko.|r",
@@ -292,10 +292,10 @@ local csCZ = {
 	PROFILES_CONFIRM = "Klikni znovu pro potvrzení",
 	PROFILES_NEED_NAME = "|cffff8800Nejdřív napiš název.|r",
 	PROFILES_DONE = "|cff00ff00Hotovo.|r",
-	PROFILES_MORE = "... a dalších %d (/fpad profile use <název>)",
+	PROFILES_MORE = "... a dalších %d (/ccp profile use <název>)",
 
 	SETUP_BUTTON = "Průvodce",
-	SETUP_TITLE = "ForeverPad - první nastavení",
+	SETUP_TITLE = "CharacterControlPad - první nastavení",
 	SETUP_SKIP = "Přeskočit",
 	SETUP_STEP1 = "Krok 1 ze 2: která tlačítka mají být modifikátory?\nDržením modifikátoru přepneš na jinou vrstvu akcí (L1+Křížek, R1+Křížek ...).",
 	SETUP_MODS_L1R1 = "L1 + R1  (doporučeno)",
@@ -322,7 +322,7 @@ local csCZ = {
 	ENGINE_COMBAT_PENDING = "V boji - změny bindů se použijí po skončení boje.",
 	STATE_DISABLED = "vypnuté",
 	STATE_PAUSED = "pozastavené (Blizzard UI pro ovladač)",
-	LOGIN_HINT = "  |cff888888/fpad = nastavení|r",
+	LOGIN_HINT = "  |cff888888/ccp = nastavení|r",
 
 	CTX_BUTTON = "Okna",
 	CTX_TITLE = "Kontextové ovládání",
@@ -420,7 +420,7 @@ local function CreateCustomFonts()
 	for _, base in ipairs(FONT_BASES) do
 		local blizzard = _G[base]
 		if type(blizzard) == "table" and type(blizzard.GetFont) == "function" then
-			local name = "ForeverPad_" .. base
+			local name = "CharacterControlPad_" .. base
 			local ok, created = pcall(function()
 				local f = CreateFont(name)
 				f:CopyFontObject(blizzard)

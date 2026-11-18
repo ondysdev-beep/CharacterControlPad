@@ -1,7 +1,7 @@
-# ForeverPad – Technický audit (Fáze 0)
+# CharacterControlPad – Technický audit (Fáze 0)
 
 **Datum:** 2026-11-18
-**Stav:** Fáze 0–4 jsou ověřené ve hře (kapitoly 9 a 10). Fáze 5, konfigurátor, kontextové ovládání oken a nové okno nastavení (v0.3–0.12.0) jsou hotové a otestované mimo hru (260+ testů, `npm test`). Čeká se na souhrnný test ve hře (kapitola 11).
+**Stav:** Fáze 0–4 jsou ověřené ve hře (kapitoly 9 a 10). Fáze 5, konfigurátor, kontextové ovládání oken a nové okno nastavení (v0.3–0.13.0) jsou hotové a otestované mimo hru (260+ testů, `npm test`). Čeká se na souhrnný test ve hře (kapitola 11).
 
 Značení podle zadání:
 
@@ -23,7 +23,7 @@ Silný, ale nepřímý důkaz je zdrojový kód Blizzard UI z větve `forever` r
 
    Mezi nimi se přepíná událostí `INPUT_DEVICE_INTERFACE_TRANSITION`.
 3. **Režim `Gamepad` nepoužívá běžné action bary.** Jeho bary mají vlastní úložiště slotů (`C_GamepadUI.GetFirstGamepadActionStorageSlotIndex()`) a zapíná zvláštní binding kontext `GamepadModeInGameCore`. Podle dostupných informací jsou v něm bindingy tlačítek pevné. *[src + web]*
-4. **ForeverPad má proto smysl jako vrstva bindingů v režimu `Mkb`.** Původní Blizzard UI a bary zůstanou, ovladač se na ně jen namapuje. To přesně odpovídá vizi ze zadání a nativní režim Blizzardu tuhle potřebu nepokrývá.
+4. **CharacterControlPad má proto smysl jako vrstva bindingů v režimu `Mkb`.** Původní Blizzard UI a bary zůstanou, ovladač se na ně jen namapuje. To přesně odpovídá vizi ze zadání a nativní režim Blizzardu tuhle potřebu nepokrývá.
 5. **Akce musí vykonávat binding systém, ne Lua kód addonu.** Addon smí jen mimo boj nastavit override bindingy, například `SHIFT-PAD1 → ACTIONBUTTON5`. Stisk pak obslouží klient. Modifikátory řeší CVary `GamePadEmulateShift/Ctrl/Alt`. Tok „event → Lua → spuštění akce“ ze zadání (kap. 11) **není možný**, protože `UseAction` je chráněná funkce.
 6. **Klíčová otevřená otázka:** posílá klient v režimu `Mkb` stisky ovladače do běžných bindingů (`PAD1`, `SHIFT-PAD1`, …), nebo jen v režimu `Gamepad`? Na tom stojí celý projekt. v0.1 potvrdila, že v Mkb nejsou žádné `PAD*` bindingy a emulované modifikátory fungují. Definitivně odpoví proof of concept v kapitole 10.
 7. **ConsolePort už pro Forever existuje** (verze 3.3.0, interim release). Viz kapitola 6.
@@ -101,17 +101,17 @@ Frame skripty `OnGamePadButtonDown`, `OnGamePadButtonUp`, `OnGamePadStick` a met
 
 ---
 
-## 4. Architektonický důsledek pro ForeverPad
+## 4. Architektonický důsledek pro CharacterControlPad
 
 ```text
 DualSense ──► klient WoW (SDL, GamePadConfig) ──► binding systém klienta
                                                   │
-     ForeverPad (mimo boj) nastavuje override ────┘
+     CharacterControlPad (mimo boj) nastavuje override ────┘
      bindingy: PAD1 → ACTIONBUTTON1,
                SHIFT-PAD1 → ACTIONBUTTON5 …
      (modifikátory = CVary GamePadEmulateShift/Ctrl/Alt)
 
-ForeverPad Lua vstupní události (OnGamePadButtonDown) slouží JEN pro:
+CharacterControlPad Lua vstupní události (OnGamePadButtonDown) slouží JEN pro:
   - diagnostiku,
   - režim „stiskni tlačítko, které chceš namapovat“ v konfigurátoru.
 ```
@@ -138,51 +138,51 @@ Dopady na zadání:
 
 - ConsolePort, nejrozšířenější addon pro ovladač, má **Interim release pro WoW: Forever** (PR #231, sloučeno 2. 10. 2026, verze 3.3.0). Všechny moduly deklarují Interface 16001. Menu modul je ve Forever ve výchozím stavu vypnutý, aby se nepral s nativním menu Blizzardu.
 - Nový modul `Layers.lua` řeší modifikátory (held, double tap, latched, ordered). Kurzor a další části Forever reworku podle autora ještě nezačaly.
-- **Doporučení:** brát ho jako referenci řešení. Kód nepřebírat bez kontroly licence. Před velkou investicí do Binding Engine je dobré si ConsolePort vyzkoušet a ujasnit si, čím se má ForeverPad odlišit (lehkost, původní UI jako výchozí stav, jednoduchý konfigurátor).
+- **Doporučení:** brát ho jako referenci řešení. Kód nepřebírat bez kontroly licence. Před velkou investicí do Binding Engine je dobré si ConsolePort vyzkoušet a ujasnit si, čím se má CharacterControlPad odlišit (lehkost, původní UI jako výchozí stav, jednoduchý konfigurátor).
 
 ---
 
 ## 7. Diagnostický addon (Fáze 1 + 2)
 
-Umístění v projektu: `ForeverPad/`
+Umístění v projektu: `CharacterControlPad/`
 
 | Soubor | Účel |
 |---|---|
-| `ForeverPad.toc` | Interface 16001, SavedVariables `ForeverPadDB` |
-| `Core.lua` | inicializace, events (zaznamenává, které eventy klient přijal), slash příkazy `/fpad` |
+| `CharacterControlPad.toc` | Interface 16001, SavedVariables `CharacterControlPadDB` |
+| `Core.lua` | inicializace, events (zaznamenává, které eventy klient přijal), slash příkazy `/ccp` |
 | `Audit.lua` | snímek klienta: build, `WOW_PROJECT_ID`, existence API, CVary (i vyhledané přes `C_Console`), zařízení, existující `PAD*` bindingy se všemi kombinacemi modifikátorů, action bar framy, obsazené sloty |
 | `InputDiagnostics.lua` | živé logování stisků, uvolnění, páček, modifikátorů, připojení a odpojení ovladače a přepnutí režimu UI; detekce opakovaného DOWN, UP bez DOWN a tlačítek zaseknutých při odpojení |
 
-Addon **nevykonává žádné akce a nemění žádné bindingy ani CVary**. Jediný zásah je, že v režimu `/fpad listen` zapne příjem vstupu ovladače na vlastním neviditelném framu, s propagací vstupu dál do hry.
+Addon **nevykonává žádné akce a nemění žádné bindingy ani CVary**. Jediný zásah je, že v režimu `/ccp listen` zapne příjem vstupu ovladače na vlastním neviditelném framu, s propagací vstupu dál do hry.
 
 Syntaxe všech `.lua` souborů je zkontrolovaná parserem Lua 5.1 (`luaparse`), seznam použitých globálů je zkontrolovaný proti WoW API. Ve hře zatím nic z toho otestované není.
 
 ### 7.1 Instalace
 
-Zkopírovat složku `ForeverPad` do:
+Zkopírovat složku `CharacterControlPad` do:
 
 ```
-C:\Program Files (x86)\World of Warcraft\_forever_\Interface\AddOns\ForeverPad\
+C:\Program Files (x86)\World of Warcraft\_forever_\Interface\AddOns\CharacterControlPad\
 ```
 
-Výsledek: `...\AddOns\ForeverPad\ForeverPad.toc` (ne `...\AddOns\ForeverPad\ForeverPad\...`).
+Výsledek: `...\AddOns\CharacterControlPad\CharacterControlPad.toc` (ne `...\AddOns\CharacterControlPad\CharacterControlPad\...`).
 
 Alternativa pro vývoj: místo kopie vytvořit junction (PowerShell). Změny v projektu se pak hned projeví po `/reload`:
 
 ```powershell
-New-Item -ItemType Junction -Path "C:\Program Files (x86)\World of Warcraft\_forever_\Interface\AddOns\ForeverPad" -Target "C:\path\to\ForeverControl\ForeverPad"
+New-Item -ItemType Junction -Path "C:\Program Files (x86)\World of Warcraft\_forever_\Interface\AddOns\CharacterControlPad" -Target "C:\path\to\ForeverControl\CharacterControlPad"
 ```
 
 ### 7.2 Příkazy
 
 | Příkaz | Co dělá |
 |---|---|
-| `/fpad` | nápověda |
-| `/fpad status` | režim UI, `C_GamePad.IsEnabled`, aktivní zařízení, stav poslechu |
-| `/fpad audit` | nový snímek a souhrn do chatu |
-| `/fpad listen` | zapnout nebo vypnout živé logování vstupu (jen mimo boj) |
-| `/fpad sticks` | zapnout nebo vypnout výpis hodnot páček během poslechu |
-| `/fpad clearlog` | smazat uložený log vstupů |
+| `/ccp` | nápověda |
+| `/ccp status` | režim UI, `C_GamePad.IsEnabled`, aktivní zařízení, stav poslechu |
+| `/ccp audit` | nový snímek a souhrn do chatu |
+| `/ccp listen` | zapnout nebo vypnout živé logování vstupu (jen mimo boj) |
+| `/ccp sticks` | zapnout nebo vypnout výpis hodnot páček během poslechu |
+| `/ccp clearlog` | smazat uložený log vstupů |
 
 ### 7.3 Testovací postup
 
@@ -190,29 +190,29 @@ Vše dělej **mimo boj**, DualSense připojený (USB nebo Bluetooth), **bez Stea
 
 **Test A – režim myš a klávesnice (Mkb), původní UI**
 
-1. Spusť hru, na výběru postavy ověř, že je ForeverPad v seznamu AddOns zapnutý.
-2. Po přihlášení musí být v chatu `ForeverPad v0.1.0-diag loaded…` a **žádná Lua chyba**.
-3. `/fpad audit`: opiš nebo vyfoť 5–6 řádků souhrnu.
-4. `/fpad listen` a postupně stiskni: Cross, Circle, Square, Triangle, L1, R1, L2, R2, L3, R3, D-pad ↑ ↓ ← →, Options, Create, PS, Touchpad (klik), Mute.
+1. Spusť hru, na výběru postavy ověř, že je CharacterControlPad v seznamu AddOns zapnutý.
+2. Po přihlášení musí být v chatu `CharacterControlPad v0.1.0-diag loaded…` a **žádná Lua chyba**.
+3. `/ccp audit`: opiš nebo vyfoť 5–6 řádků souhrnu.
+4. `/ccp listen` a postupně stiskni: Cross, Circle, Square, Triangle, L1, R1, L2, R2, L3, R3, D-pad ↑ ↓ ← →, Options, Create, PS, Touchpad (klik), Mute.
    Sleduj, zda se objevuje `DOWN …`/`UP …` a jaké názvy (`PAD1`, …) tlačítka mají.
 5. Drž **R2** a stiskni Cross. Sleduj, jestli je v řádku `mods=[CTRL-]` (R2 je teď nastavené jako Ctrl).
 6. Všimni si, jestli stisky ovladače **dělají něco ve hře** (skok, spell, …). To je klíčová otázka 1.6.
-7. `/fpad sticks`, pohni oběma páčkami, pak znovu `/fpad sticks`.
+7. `/ccp sticks`, pohni oběma páčkami, pak znovu `/ccp sticks`.
 8. Drž Cross a odpoj ovladač (kabel nebo vypnutí). Pak ho znovu připoj.
-9. `/fpad listen` (vypnout) a potom `/reload`, aby se data zapsala na disk.
+9. `/ccp listen` (vypnout) a potom `/reload`, aby se data zapsala na disk.
 
 **Test B – režim Gamepad**
 
 1. Esc → Options → Gameplay → Gamepad: zapni podporu ovladače.
 2. Sleduj, zda se v chatu objeví `Interface style changed: Mkb -> Gamepad`.
-3. `/fpad audit`, potom `/fpad listen`, stiskni pár tlačítek a nakonec `/fpad listen`.
+3. `/ccp audit`, potom `/ccp listen`, stiskni pár tlačítek a nakonec `/ccp listen`.
 4. Vrať nastavení zpět do režimu myš a klávesnice a dej `/reload`.
 
 ### 7.4 Co mi poslat zpět
 
 - Popis toho, co viděl(a) v chatu, hlavně případné Lua chyby a výsledek bodu A6.
 - Výsledná data si přečtu sám ze souboru:
-  `C:\Program Files (x86)\World of Warcraft\_forever_\WTF\Account\<ÚČET>\SavedVariables\ForeverPad.lua`
+  `C:\Program Files (x86)\World of Warcraft\_forever_\WTF\Account\<ÚČET>\SavedVariables\CharacterControlPad.lua`
   Stačí napsat „hotovo“.
 
 ---
@@ -226,7 +226,7 @@ Vše dělej **mimo boj**, DualSense připojený (USB nebo Bluetooth), **bez Stea
 
 ## 9. Výsledky diagnostiky v0.1 (2026-11-18, build 1.60.1.70959)
 
-Zdroj: `WTF\Account\…\SavedVariables\ForeverPad.lua`, snímek z 16:48:13 po `/reload` a log vstupů. Podle uživatele se neobjevily žádné Lua chyby.
+Zdroj: `WTF\Account\…\SavedVariables\CharacterControlPad.lua`, snímek z 16:48:13 po `/reload` a log vstupů. Podle uživatele se neobjevily žádné Lua chyby.
 
 ### 9.1 CONFIRMED
 
@@ -249,7 +249,7 @@ Zdroj: `WTF\Account\…\SavedVariables\ForeverPad.lua`, snímek z 16:48:13 po `/
 | `ActionButtonUseKeyDown` | `1`: akce se spouští při stisku |
 | Index tlačítek → binding | `0=PADDUP 1=PADDRIGHT 2=PADDDOWN 3=PADDLEFT 4=PAD1 5=PAD2 6=PAD3 7=PAD4 8=PAD5 9=PAD6 10=PADLSTICK 11=PADRSTICK 12=PADLSHOULDER 13=PADRSHOULDER 14=PADLTRIGGER 15=PADRTRIGGER 16–19=levá páčka ↑→↓← 20–23=pravá páčka ↑→↓← 24–27=PADPADDLE1–4 28=PADFORWARD 29=PADBACK 30=PADSYSTEM 31=PADSOCIAL` |
 | Virtuální páčky | `Left`, `Right`, `Movement`, `Camera`, `Gyro`, `Look`, `Pad` (touchpad), `Cursor` |
-| Bindingy ovladače | v režimu Mkb **nejsou žádné `PAD*` bindingy** (0 ze 256 kombinací). Ovladač tedy v Mkb sám nic nespouští, pole je volné pro ForeverPad |
+| Bindingy ovladače | v režimu Mkb **nejsou žádné `PAD*` bindingy** (0 ze 256 kombinací). Ovladač tedy v Mkb sám nic nespouští, pole je volné pro CharacterControlPad |
 | Klávesnice | `ACTIONBUTTON1–3 = 1, 2, 3`, `ACTIONBUTTON4 = SHIFT-E` |
 | Sloty | standardní sloty **1–180**, gamepadový HUD od slotu **181** (`GetFirstGamepadActionStorageSlotIndex`). Obsazené sloty se dají číst mimo boj (`spell:915`, `item:3383` …) |
 | Action bary | `MainActionBar` existuje a je zobrazený. **`MainMenuBar` ve Forever neexistuje.** `MultiBarBottomLeft/BottomRight/Right/Left`, `MultiBar5–7`, `StanceBar`, `PetActionBar`, `PossessActionBar`, `OverrideActionBar` existují. `GetActionBarToggles()` = `true, true, true, true, false, false, false` (zapnuté 4 přídavné bary) |
@@ -260,10 +260,10 @@ Zdroj: `WTF\Account\…\SavedVariables\ForeverPad.lua`, snímek z 16:48:13 po `/
 | Problém | Stav | Řešení |
 |---|---|---|
 | **`OnGamePadButtonUp` nikdy nepřijde.** V logu není jediné UP, každý další stisk je „REPEAT_DOWN“ a při odpojení se hlásí všechna tlačítka jako držená | BLOCKED (pro tento způsob čtení) | Pravděpodobná příčina: při `SetPropagateKeyboardInput(true)` dostane uvolnění ten, kdo zpracoval stisk, tedy binding systém, ne náš frame. **Neovlivňuje to vykonávání akcí**, ty jdou přes bindingy. Ve v0.2 se uvolnění detekuje dotazováním `C_GamePad.GetDeviceMappedState()` |
-| `MultiBar*:IsShown()` hází chybu | NOT CONFIRMED | v0.2 ukládá text chyby. ForeverPad viditelnost barů stejně nečte ani nemění |
+| `MultiBar*:IsShown()` hází chybu | NOT CONFIRMED | v0.2 ukládá text chyby. CharacterControlPad viditelnost barů stejně nečte ani nemění |
 | Gyro posílá trvalý šum (len ≈ 0.2) | info | v0.2 virtuální páčky `Gyro`/`Look` nelogujeme |
 | Přepnutí režimu UI se v logu neobjevilo | NOT CONFIRMED | Ve druhé části logu se L2/R2 hlásí jako obyčejná tlačítka bez modifikátoru, což odpovídá režimu Gamepad (ten emulaci modifikátorů nepoužívá). Přepnutí režimu tedy nejspíš znovu načte UI, takže událost proběhne dřív, než se addon načte. v0.2 zapisuje značku `LOGIN` s režimem UI při každém načtení |
-| Fyzické přiřazení (Cross = `PAD1`?) | NOT CONFIRMED | tlačítka se mačkala v rychlém sledu. v0.2 má průvodce `/fpad identify` |
+| Fyzické přiřazení (Cross = `PAD1`?) | NOT CONFIRMED | tlačítka se mačkala v rychlém sledu. v0.2 má průvodce `/ccp identify` |
 
 ---
 
@@ -272,8 +272,8 @@ Zdroj: `WTF\Account\…\SavedVariables\ForeverPad.lua`, snímek z 16:48:13 po `/
 Nové v0.2:
 
 - **Detekce uvolnění** dotazováním stavu ovladače (`UP_POLL` v logu).
-- **`/fpad identify`**: průvodce postupně vyzve ke stisku každého tlačítka DualSense a zapíše, jak se hlásí (`PAD1` nebo „emulated RSHIFT“).
-- **`/fpad poc`**: volitelný proof of concept. Mimo boj nastaví **dočasné override bindingy**:
+- **`/ccp identify`**: průvodce postupně vyzve ke stisku každého tlačítka DualSense a zapíše, jak se hlásí (`PAD1` nebo „emulated RSHIFT“).
+- **`/ccp poc`**: volitelný proof of concept. Mimo boj nastaví **dočasné override bindingy**:
 
   | Ovladač | Binding | Akce |
   |---|---|---|
@@ -282,19 +282,19 @@ Nové v0.2:
   | R2 + Cross | `CTRL-PAD1` | `ACTIONBUTTON3` |
   | L2 + R2 + Cross | `CTRL-SHIFT-PAD1` | `ACTIONBUTTON4` |
 
-  Bindingy se neukládají, zmizí po `/fpad poc`, `/reload` nebo odhlášení. Addon sám žádnou akci nevolá. Během PoC se loguje `CAST`/`CAST_FAILED` hráče (v boji může být spell ID „secret“) a začátek a konec boje.
+  Bindingy se neukládají, zmizí po `/ccp poc`, `/reload` nebo odhlášení. Addon sám žádnou akci nevolá. Během PoC se loguje `CAST`/`CAST_FAILED` hráče (v boji může být spell ID „secret“) a začátek a konec boje.
 
   Pro PoC se používají L2/R2, protože tak je ovladač v tvém klientu už nastavený (CVary hráče neměníme). Modifikátory L1/R1 ze zadání by vyžadovaly změnit `GamePadEmulateShift/Ctrl`. To je rozhodnutí pro Binding Engine.
 
 **Testovací postup v0.2** (vše v režimu myš a klávesnice, Steam vypnutý):
 
 1. **Restart hry** (nový soubor v TOC, `/reload` nestačí).
-2. `/fpad identify` a mačkej tlačítka podle výzev. Když se po stisku nic neobjeví, napiš `/fpad skip`. Na konci `/fpad listen` (vypnout).
-3. Mimo boj `/fpad poc`. Do chatu se vypíše, na co klient bindingy přeložil.
+2. `/ccp identify` a mačkej tlačítka podle výzev. Když se po stisku nic neobjeví, napiš `/ccp skip`. Na konci `/ccp listen` (vypnout).
+3. Mimo boj `/ccp poc`. Do chatu se vypíše, na co klient bindingy přeložil.
 4. Mimo boj zkus Cross, L2+Cross, R2+Cross, L2+R2+Cross a sleduj, jestli se sešlou akce z tlačítek 1–4 hlavního baru.
 5. Najdi nepřítele a zopakuj to **v boji**.
 6. Zkontroluj, že klávesy 1, 2, 3 a Shift-E dál fungují a že se hlavní bar nezměnil.
-7. `/fpad poc` (vypnout) a `/reload`.
+7. `/ccp poc` (vypnout) a `/reload`.
 
 ### 10.1 Výsledky v0.2 (2026-11-18 17:32–17:36, režim Mkb)
 
@@ -311,7 +311,7 @@ Zdroj: SavedVariables a potvrzení uživatele („sesílají se“, ostatní bod
 
 Mimo boj se spelly hlásily jako `CAST_FAILED`, nejspíš kvůli chybějícímu cíli: akce se spustila a hra ji odmítla. V boji prošlo `CAST` 915 (3×) a 8052. Klávesnice a hlavní bar zůstaly beze změny (uživatel). **Spell ID vlastních kouzel nejsou v boji secret.**
 
-**Fyzické přiřazení DualSense – CONFIRMED** (`/fpad identify`):
+**Fyzické přiřazení DualSense – CONFIRMED** (`/ccp identify`):
 
 | DualSense | Binding klíč | | DualSense | Binding klíč |
 |---|---|---|---|---|
@@ -328,7 +328,7 @@ Mimo boj se spelly hlásily jako `CAST_FAILED`, nejspíš kvůli chybějícímu 
 - **Ťuknutí na modifikátor – CONFIRMED.** Krátký stisk L2 (111 ms, tedy pod `GamePadEmulateTapWindowMs = 350`) vyvolá Shift down/up a **při uvolnění pošle i samotné `PADLTRIGGER`**. Modifikátor tak může mít vlastní akci na ťuknutí a na držení funguje jako modifikátor, což řeší bod 4.3 zadání přímo v klientu. Když `PADLTRIGGER` nemá binding, ťuknutí nic nedělá. Průvodce identifikace kvůli tomu omylem přiřadil ťuknutí L2 ke kroku R2; opraveno ve v0.2.1.
 - **Uvolnění tlačítek přes dotazování – CONFIRMED.** Tabulka `GetDeviceMappedState().buttons` je indexovaná od 1 (`buttons[index + 1]`). Zachycená uvolnění trvala 70–250 ms a REPEAT_DOWN se už neobjevil.
 - **Přepnutí do režimu Gamepad znovu načte UI.** Událost `INPUT_DEVICE_INTERFACE_TRANSITION` proto addon neuvidí. Režim je potřeba číst při `PLAYER_LOGIN`. V režimu Gamepad se L2/R2 chovají jako obyčejná tlačítka, protože emulace modifikátorů neplatí.
-- **`MultiBar*` „ERROR: false“ byla chyba diagnostiky** (`a and b or c` s `b = false`). Bary jsou ve skutečnosti skryté (`IsShown() = false`), i když `GetActionBarToggles()` vrací 4× `true`. Rozpor je NOT CONFIRMED (možná Edit Mode nebo Forever preset; existuje `C_GameRules.IsMultiActionBarVisibilityForced`). ForeverPad viditelnost barů nemění, takže to nebrání vývoji. Opraveno ve v0.2.1.
+- **`MultiBar*` „ERROR: false“ byla chyba diagnostiky** (`a and b or c` s `b = false`). Bary jsou ve skutečnosti skryté (`IsShown() = false`), i když `GetActionBarToggles()` vrací 4× `true`. Rozpor je NOT CONFIRMED (možná Edit Mode nebo Forever preset; existuje `C_GameRules.IsMultiActionBarVisibilityForced`). CharacterControlPad viditelnost barů nemění, takže to nebrání vývoji. Opraveno ve v0.2.1.
 
 **Závěr:** technická cesta je ověřená. Pokračuje se Fází 5, tedy obecným Binding Engine se SavedVariables.
 
@@ -346,10 +346,10 @@ Mimo boj se spelly hlásily jako `CAST_FAILED`, nejspíš kvůli chybějícímu 
 | Soubor | Odpovědnost |
 |---|---|
 | `Data.lua` | tlačítka DualSense (potvrzené), bary → binding příkazy, katalog herních a UI příkazů, výchozí profil |
-| `Profiles.lua` | profily v `ForeverPadDB.profiles`, přiřazení postava → profil, vytvoření / kopie / přejmenování / smazání / reset |
-| `BindingEngine.lua` | profil → `SetOverrideBinding` (vlastník `ForeverPadBindingOwner`), modifikátory přes `C_CVar.SetTempCVar`, odložení změn v boji, pozastavení v režimu Gamepad |
+| `Profiles.lua` | profily v `CharacterControlPadDB.profiles`, přiřazení postava → profil, vytvoření / kopie / přejmenování / smazání / reset |
+| `BindingEngine.lua` | profil → `SetOverrideBinding` (vlastník `CharacterControlPadBindingOwner`), modifikátory přes `C_CVar.SetTempCVar`, odložení změn v boji, pozastavení v režimu Gamepad |
 | `Commands.lua` | slash příkazy (konfigurace do doby, než vznikne grafický konfigurátor) |
-| `Audit.lua`, `InputDiagnostics.lua` | diagnostika (`/fpad audit`, `/fpad listen`, `/fpad identify`) |
+| `Audit.lua`, `InputDiagnostics.lua` | diagnostika (`/ccp audit`, `/ccp listen`, `/ccp identify`) |
 
 Bary podle `Blizzard_ActionBar/Shared/MultiActionBars.xml` (větev forever):
 
@@ -393,25 +393,25 @@ Každé přiřazení jde změnit. Když modifikovaná kombinace nemá binding, W
 
 1. `SetTempCVar` na `GamePadEmulateShift/Ctrl` funguje a **nezapíše se do `Config.wtf`**. Po odhlášení zkontroluji soubor.
 2. Bindingy na tlačítka **skrytých** barů (`MULTIACTIONBAR*` s `IsShown() = false`) spouštějí akci.
-3. Názvy herních a UI příkazů v katalogu existují ve Forever (`/fpad commands` označí neplatné šedě).
-4. Ťuknutí na L1/R1 jako samostatná akce (`/fpad map L1 cmd …`).
+3. Názvy herních a UI příkazů v katalogu existují ve Forever (`/ccp commands` označí neplatné šedě).
+4. Ťuknutí na L1/R1 jako samostatná akce (`/ccp map L1 cmd …`).
 
 ### 11.4 Příkazy
 
 | Příkaz | Význam |
 |---|---|
-| `/fpad list` | stav a celé mapování aktivního profilu včetně obsahu slotů |
-| `/fpad map L1+Cross bar 1 5` | kombinace → tlačítko baru (bar 1–8, tlačítko 1–12) |
-| `/fpad map Touchpad cmd TOGGLEWORLDMAP` | kombinace → herní/UI příkaz |
-| `/fpad unmap L1+Cross` | zrušit mapování |
-| `/fpad mod shift L1` / `ctrl R1` / `alt none` | přiřazení modifikátorů |
-| `/fpad commands` | katalog příkazů a jejich dostupnost |
-| `/fpad profile` | `use`, `new`, `copy`, `rename`, `delete`, `reset` |
-| `/fpad on` / `/fpad off` | zapnout / vypnout (`off` vrátí i původní modifikátory) |
+| `/ccp list` | stav a celé mapování aktivního profilu včetně obsahu slotů |
+| `/ccp map L1+Cross bar 1 5` | kombinace → tlačítko baru (bar 1–8, tlačítko 1–12) |
+| `/ccp map Touchpad cmd TOGGLEWORLDMAP` | kombinace → herní/UI příkaz |
+| `/ccp unmap L1+Cross` | zrušit mapování |
+| `/ccp mod shift L1` / `ctrl R1` / `alt none` | přiřazení modifikátorů |
+| `/ccp commands` | katalog příkazů a jejich dostupnost |
+| `/ccp profile` | `use`, `new`, `copy`, `rename`, `delete`, `reset` |
+| `/ccp on` / `/ccp off` | zapnout / vypnout (`off` vrátí i původní modifikátory) |
 
 ### 11.5 Konfigurační okno – část 1 (v0.4.0)
 
-- `/fpad` otevře okno (`ConfigWindow.lua`), nápověda je na `/fpad help`.
+- `/ccp` otevře okno (`ConfigWindow.lua`), nápověda je na `/ccp help`.
 - **Záložky vrstev** se tvoří z modifikátorů profilu: 2 modifikátory dávají 4 vrstvy, 3 modifikátory 8 vrstev.
 - **Řádky:** v každém je tlačítko DualSense, ikona a název akce (čte se z obsahu slotu) a k tomu [Change] / [X]. Modifikátor je v základní vrstvě jako „(tap)“, v ostatních vrstvách se nezobrazuje. PS se nenabízí.
 - **Výběr akce** (`ActionPicker.lua`) má tři záložky:
@@ -426,7 +426,7 @@ Další části: rychlé přiřazení na barech, obrazovka modifikátorů a prof
 
 ### 11.6 Rychlé přiřazení na barech (v0.5.0)
 
-- Spouští se tlačítkem **Bind on bars** v okně nebo příkazem `/fpad bind` (`QuickBind.lua`).
+- Spouští se tlačítkem **Bind on bars** v okně nebo příkazem `/ccp bind` (`QuickBind.lua`).
 - **Překryvy:** přes každé *viditelné* Blizzard action tlačítko se položí průhledný překryv ukotvený k tlačítku, takže funguje s libovolným rozložením a měřítkem. Překryv pohltí kliknutí myší, takže se nic nesešle.
 - **Zachytávání:** vlastní frame přijímá `OnGamePadButtonDown` s **vypnutou propagací**, takže stisk při přiřazování nedojde do hry. Modifikátory se čtou z emulovaného stavu Shift/Ctrl/Alt, což bylo ověřeno ve Fázi 4.
 - **Ovládání:**
@@ -456,10 +456,10 @@ Postranní panely se otevírají vedle okna, vždy jen jeden. V boji se zavřou 
 - seznam profilů s počtem postav, kliknutím se profil přiřadí této postavě;
 - akce: nový prázdný, nový ze šablony, kopie aktivního, přejmenovat, smazat všechny bindy, smazat profil;
 - mazání vyžaduje druhé kliknutí jako potvrzení;
-- slash příkazy: `/fpad profile new` vytvoří *prázdný* profil, `template` profil ze šablony.
+- slash příkazy: `/ccp profile new` vytvoří *prázdný* profil, `template` profil ze šablony.
 
 **Průvodce prvním spuštěním** (`Wizard.lua`):
-- při přihlášení se ukazuje, dokud ho hráč nedokončí nebo nepřeskočí (`ForeverPadDB.setupDone`); znovu ho otevře `/fpad setup` nebo tlačítko *Setup wizard*;
+- při přihlášení se ukazuje, dokud ho hráč nedokončí nebo nepřeskočí (`CharacterControlPadDB.setupDone`); znovu ho otevře `/ccp setup` nebo tlačítko *Setup wizard*;
 - krok 1: modifikátory (L1+R1 doporučeno / L2+R2 / L1+R1+L2 / žádné);
 - krok 2: prázdné rozložení, nebo šablona;
 - konec: spustit rychlé přiřazení / otevřít nastavení / zavřít.
@@ -468,26 +468,26 @@ Postranní panely se otevírají vedle okna, vždy jen jeden. V boji se zavřou 
 
 ### 11.8 Úklid diagnostiky (v0.7.0)
 
-- **Diagnostika je jen na vyžádání** pod `/fpad debug …`:
+- **Diagnostika je jen na vyžádání** pod `/ccp debug …`:
   - nástroje `audit`, `listen`, `identify`, `skip`, `sticks`, `status`, `clearlog`;
-  - `/fpad debug` vypíše nástroje, `/fpad debug on` / `off` diagnostiku zapne / vypne.
-  - Starší názvy (`/fpad listen`, `/fpad audit` …) v kapitolách 7 a 10 teď platí s předponou `debug`.
+  - `/ccp debug` vypíše nástroje, `/ccp debug on` / `off` diagnostiku zapne / vypne.
+  - Starší názvy (`/ccp listen`, `/ccp audit` …) v kapitolách 7 a 10 teď platí s předponou `debug`.
 - **Debug režim:**
   - zapne ho první spuštěný diagnostický nástroj;
   - jen v něm se ukládá log vstupů a audit a do chatu se hlásí připojení / odpojení ovladače a změna režimu UI;
-  - `/fpad debug off` zastaví poslech a diagnostická data smaže.
+  - `/ccp debug off` zastaví poslech a diagnostická data smaže.
 - **Žádný automatický audit** při přihlášení.
 - **Migrace:** při načtení se smažou diagnostická data starších buildů (`audit`, `inputLog`, `identify`, `poc`, `listenSetup`, `inputScriptSupport`, `buttonStateIndexOffset`), pokud není zapnutý debug režim. SavedVariables tak spadnou ze ~50 kB na jednotky kB.
-- **Při přihlášení jen jeden řádek v chatu:** stav profilu a „/fpad = settings“. Chyby bindů se vypíšou zvlášť, jen když nějaké jsou.
-- `/fpad help` ukazuje jen hráčské příkazy a odkaz na `/fpad debug`.
+- **Při přihlášení jen jeden řádek v chatu:** stav profilu a „/ccp = settings“. Chyby bindů se vypíšou zvlášť, jen když nějaké jsou.
+- `/ccp help` ukazuje jen hráčské příkazy a odkaz na `/ccp debug`.
 - **Ověřeno mimo hru:** 14 testů úklidu. Všechny sady dohromady mají 137 testů.
 
 ### 11.9 Kompatibilita s jinými addony (v0.8.0)
 
 - **Typ akce `click`:** bind na libovolné pojmenované akční tlačítko přes `SetOverrideBindingClick(owner, false, key, name, "LeftButton")`. Je to obecná podpora bar addonů (Bartender4, Dominos, ElvUI …) bez seznamu jmen jejich tlačítek. Slot a ikona se čtou z `.action`, z atributu `action`, nebo z `._state_action` (LibActionButton).
-- **Rychlé přiřazení:** když pod myší není Blizzard tlačítko (žádný překryv), použije se tlačítko pod kurzorem z `GetMouseFoci()`. Vezme se první pojmenovaný Button/CheckButton s akčním slotem nebo secure atributem `type`, nejvýš 4 úrovně rodičů. Vlastní okna ForeverPadu se ignorují.
-- **`/fpad map <combo> click <JménoTlačítka>`** pro ruční zadání.
-- **Obecná detekce konfliktů:** po každé aplikaci engine porovná `GetBindingAction(key, true)` s očekávaným bindem. Když kombinaci převzal jiný addon (například ConsolePort s prioritním override), hlásí se v chatu, v `/fpad list` i v okně.
+- **Rychlé přiřazení:** když pod myší není Blizzard tlačítko (žádný překryv), použije se tlačítko pod kurzorem z `GetMouseFoci()`. Vezme se první pojmenovaný Button/CheckButton s akčním slotem nebo secure atributem `type`, nejvýš 4 úrovně rodičů. Vlastní okna CharacterControlPadu se ignorují.
+- **`/ccp map <combo> click <JménoTlačítka>`** pro ruční zadání.
+- **Obecná detekce konfliktů:** po každé aplikaci engine porovná `GetBindingAction(key, true)` s očekávaným bindem. Když kombinaci převzal jiný addon (například ConsolePort s prioritním override), hlásí se v chatu, v `/ccp list` i v okně.
 - **Známé addony** (`Compat.lua`, `C_AddOns.IsAddOnLoaded`):
   - **ConsolePort** se hlásí jako konflikt („používej jen jeden“);
   - **Bartender4 / Dominos / ElvUI** dostanou nápovědu, jak jejich tlačítka nabindovat přes rychlé přiřazení.
@@ -500,15 +500,15 @@ Postranní panely se otevírají vedle okna, vždy jen jeden. V boji se zavřou 
 ### 11.10 Jazyk: angličtina + čeština (v0.9.0)
 
 - **Rozhodnutí uživatele:** angličtina výchozí, čeština volitelná.
-- **Volba jazyka** (`ForeverPadDB.language`):
+- **Volba jazyka** (`CharacterControlPadDB.language`):
   - `auto` (výchozí) = čeština, když je pro postavu zapnutý český překladový addon **WowfCZ** (`C_AddOns.GetAddOnEnableState`), jinak angličtina;
-  - ručně tlačítkem v pravém horním rohu okna (přepne a znovu načte UI) nebo `/fpad lang en | cs | auto`.
+  - ručně tlačítkem v pravém horním rohu okna (přepne a znovu načte UI) nebo `/ccp lang en | cs | auto`.
 - **Písmo:**
   - WowfCZ přibaluje vlastní `FRIZQT__.ttf`, takže výchozí písmo hry české znaky nejspíš nemá;
-  - ForeverPad proto přibaluje **Noto Sans Regular** (SIL OFL 1.1, `Fonts/OFL.txt`, 621 kB) a v češtině ho používá přes vlastní font objekty (`ForeverPad_GameFont…`), jen ve svých oknech;
-  - Blizzard font objekty ani sdílený `GameTooltip` se nemění; ForeverPad má vlastní tooltip `ForeverPadTooltip`;
+  - CharacterControlPad proto přibaluje **Noto Sans Regular** (SIL OFL 1.1, `Fonts/OFL.txt`, 621 kB) a v češtině ho používá přes vlastní font objekty (`CharacterControlPad_GameFont…`), jen ve svých oknech;
+  - Blizzard font objekty ani sdílený `GameTooltip` se nemění; CharacterControlPad má vlastní tooltip `CharacterControlPadTooltip`;
   - když se písmo nenačte (`SetFont` vrátí false), zůstane písmo hry.
-- **Přeloženo:** celé UI, názvy tlačítek DualSense, barů a příkazů a hlášky enginu v chatu. Slash nápověda a `/fpad debug` zůstávají anglicky. Vstup ve slash příkazech funguje dál anglicky (`Cross`, `x` …).
+- **Přeloženo:** celé UI, názvy tlačítek DualSense, barů a příkazů a hlášky enginu v chatu. Slash nápověda a `/ccp debug` zůstávají anglicky. Vstup ve slash příkazech funguje dál anglicky (`Cross`, `x` …).
 - **Ověřeno mimo hru:** 17 testů jazyka. Všechny sady dohromady mají 170 testů (`npm test`).
 - **NOT CONFIRMED (ve hře):**
   - jak Noto Sans vypadá a jestli velikosti sedí;
@@ -516,13 +516,13 @@ Postranní panely se otevírají vedle okna, vždy jen jeden. V boji se zavřou 
 
 ### 11.11 Balíček k vydání (v0.9.1)
 
-- **Autor:** Zap Bee. **Licence:** MIT (`LICENSE`, kopie `ForeverPad/LICENSE.txt`). Písmo Noto Sans má vlastní licenci SIL OFL 1.1 (`ForeverPad/Fonts/OFL.txt`).
+- **Autor:** Zap Bee. **Licence:** MIT (`LICENSE`, kopie `CharacterControlPad/LICENSE.txt`). Písmo Noto Sans má vlastní licenci SIL OFL 1.1 (`CharacterControlPad/Fonts/OFL.txt`).
 - **TOC:** `Author`, `Category: Action Bars`, `IconTexture`, `X-License` a `AddonCompartmentFunc` (položka v addon menu u minimapy otevře okno).
 - **Dokumenty:** `README.md` pro hráče (EN + CZ) a `CHANGELOG.md`.
 - **`npm run package`:**
   - zkontroluje, že verze v TOC a v `Core.lua` je stejná a všechny soubory z TOC existují;
   - ověří čistý pracovní strom a spustí `npm test`;
-  - přes `git archive` vytvoří `dist/ForeverPad-<verze>.zip` se složkou `ForeverPad/` (jen commitnutý obsah, bez testů a vývojových souborů).
+  - přes `git archive` vytvoří `dist/CharacterControlPad-<verze>.zip` se složkou `CharacterControlPad/` (jen commitnutý obsah, bez testů a vývojových souborů).
 - **Nahrání:** CurseForge / Wago, flavor **WoW Forever**, verze hry **1.60.1**.
 - **NOT CONFIRMED (ve hře):** addon compartment a ikona `INV_Misc_Gear_01` ve Forever.
 - **Před 1.0.0:** souhrnný test ve hře (kapitoly 11.3, 11.5–11.10 a 11.12 a testovací plán ze zadání, kap. 13).
@@ -531,10 +531,10 @@ Postranní panely se otevírají vedle okna, vždy jen jeden. V boji se zavřou 
 
 Požadavek hráče: kolečko u obchodníka sesílalo kouzlo místo zavření okna; nákup a prodej ovladačem.
 
-- **Princip:** samostatná vrstva *prioritních* override bindů (`SetOverrideBinding(owner, true, …)`) na vlastním vlastníkovi `ForeverPadContextOwner`. Hráčovo rozložení (`ForeverPadBindingOwner`) se nemění; po zavření okna vrstva zmizí. Používají se jen tlačítka bez modifikátoru.
+- **Princip:** samostatná vrstva *prioritních* override bindů (`SetOverrideBinding(owner, true, …)`) na vlastním vlastníkovi `CharacterControlPadContextOwner`. Hráčovo rozložení (`CharacterControlPadBindingOwner`) se nemění; po zavření okna vrstva zmizí. Používají se jen tlačítka bez modifikátoru.
 - **Kliknutí:** přes `SecureActionButtonTemplate` (`type = "click"`, atribut `clickbutton` = Blizzard tlačítko). Stisk bindu je hardwarová událost, takže Blizzard tlačítko proběhne neposkvrněně, jako by na něj hráč klikl myší. Addon sám nevolá žádnou chráněnou funkci. Ověřeno ve zdroji: `Blizzard_FrameXML/SecureTemplates.lua` (`SECURE_ACTIONS.click`, `useOnKeyDown`).
-- **Vlastní Lua akce** (sebrat vše `LootSlot`, D-pad výběr) běží přes obyčejná tlačítka `ForeverPadContextFn*`.
-- **Boj:** vrstva se maže v `PLAYER_REGEN_DISABLED` (ještě před zámkem), obnoví se po boji. V boji platí jen hráčovy bindy. Vrstva je vypnutá i v Blizzard gamepad UI, při vypnutém ForeverPadu a v režimu rychlého přiřazení.
+- **Vlastní Lua akce** (sebrat vše `LootSlot`, D-pad výběr) běží přes obyčejná tlačítka `CharacterControlPadContextFn*`.
+- **Boj:** vrstva se maže v `PLAYER_REGEN_DISABLED` (ještě před zámkem), obnoví se po boji. V boji platí jen hráčovy bindy. Vrstva je vypnutá i v Blizzard gamepad UI, při vypnutém CharacterControlPadu a v režimu rychlého přiřazení.
 - **Obnova:** každých 0,1 s se spočítá, co má platit (otevřená okna, předmět pod kurzorem); bindy se mění jen při změně.
 - **Kontrola konfliktů** v `BindingEngine` ignoruje klávesy, které drží kontextová vrstva (`Context.Owns`).
 - **Mapa oken (ověřeno ve zdroji větve `forever`, Camelot = rodina Mainline):**
@@ -550,7 +550,7 @@ Požadavek hráče: kolečko u obchodníka sesílalo kouzlo místo zavření okn
 | NPC a questy | `GossipFrame.GreetingPanel.ScrollBox:GetFrames()` (`buttonType` 3/4/5); `QuestFrame` panely Greeting (`titleButtonPool`), Detail (`QuestFrameAcceptButton`), Progress (`QuestFrameCompleteButton`), Reward (`QuestInfoRewardsFrame.RewardButtons` typu `choice` + `QuestFrameCompleteQuestButton`) | D-pad ↑↓ výběr (zvýraznění), Křížek = potvrdit; po výběru odměny přeskočí na Dokončit |
 | Zavírání | `GetUIPanel(left/center/right/doublewide/fullscreen)`, `UISpecialFrames`, `IsAnyBagOpen()`, `GameMenuFrame`, `WorldMapFrame`, `LootFrame`, `SettingsPanel` | Kolečko = `TOGGLEGAMEMENU` (řetězec Esc z `Blizzard_GameMenuEsc`) |
 
-- **Nastavení:** záložka **Okna** v okně nastavení (`ContextPanel.lua`, od v0.11.0), `/fpad context [on|off|status|hints on|off|<skupina> on|off]`. Uloženo v `ForeverPadDB.context` (pro celý účet).
+- **Nastavení:** záložka **Okna** v okně nastavení (`ContextPanel.lua`, od v0.11.0), `/ccp context [on|off|status|hints on|off|<skupina> on|off]`. Uloženo v `CharacterControlPadDB.context` (pro celý účet).
 - **Nápověda:** řádek pod oknem, které je navrchu (např. „Křížek Koupit (předmět pod kurzorem) … Kolečko Zavřít“).
 - **NOT CONFIRMED (ve hře):**
   - `SECURE_ACTIONS.click` projde u Blizzard tlačítek (`HasAccessConstraints` / `ScriptedInput`), hlavně u předmětů v batohu a u `LFGDungeonReadyDialog`;
@@ -588,15 +588,15 @@ První test hráče (bratr uživatele, verze 0.10.0) hlásil tyto problémy:
 - R2+Křížek nesešle kouzlo;
 - bindy „jako by se hádaly“.
 
-Uložená data (`ForeverPad.lua`) ukázala, že bindy byly použité bez chyb a bez konfliktů. Příčinu ukazuje `GamePadCursorAutoEnable = 1` spolu s `GamePadCursorLeftClick = PADRTRIGGER` a `GamePadCursorRightClick = PADRSHOULDER`. R2 a R1 jsou u hráče zároveň modifikátory (SHIFT, CTRL).
+Uložená data (`CharacterControlPad.lua`) ukázala, že bindy byly použité bez chyb a bez konfliktů. Příčinu ukazuje `GamePadCursorAutoEnable = 1` spolu s `GamePadCursorLeftClick = PADRTRIGGER` a `GamePadCursorRightClick = PADRSHOULDER`. R2 a R1 jsou u hráče zároveň modifikátory (SHIFT, CTRL).
 
 - **Zdroj (větev `forever`):**
   - `Blizzard_Game/Shared/Game.lua`: v řetězci Esc má `TryHandleFrameworkPreEsc` vyšší prioritu než otevření menu. Když `CanAutoSetGamePadCursorControl(true)`, Esc buď zruší cíl, nebo zavolá `SetGamePadCursorControl(true)` a stisk spotřebuje.
   - `TryHandleWorldEsc` kurzor zase vypíná.
   - `UIParentPanelManager.lua`, `ContainerFrame.lua`, `LootFrame.lua` a `GameMenuFrame.lua` zapínají kurzor při otevření okna a vypínají ho při zavření.
 - **Hypotéza:** když je kurzor zapnutý, levá páčka hýbe kurzorem a R1 / R2 klikají místo modifikátorů. Když se kurzor nevypne, ovládání postavy „přestane fungovat“.
-- **Oprava:** `Engine.Apply` nastavuje dočasně `SetTempCVar("GamePadCursorAutoEnable", "0")`, dokud je ForeverPad aktivní. Při vypnutí ForeverPadu a v Blizzard gamepad UI se volá `RemoveTempCVar`. Nastavení hráče se do Config.wtf nezapisuje. `SetGamePadCursorControl` ForeverPad nevolá.
-  - Volba `ns.db.keepCursorOff` (výchozí zapnuto): checkbox v záložce Nastavení a `/fpad cursor on|off`.
+- **Oprava:** `Engine.Apply` nastavuje dočasně `SetTempCVar("GamePadCursorAutoEnable", "0")`, dokud je CharacterControlPad aktivní. Při vypnutí CharacterControlPadu a v Blizzard gamepad UI se volá `RemoveTempCVar`. Nastavení hráče se do Config.wtf nezapisuje. `SetGamePadCursorControl` CharacterControlPad nevolá.
+  - Volba `ns.db.keepCursorOff` (výchozí zapnuto): checkbox v záložce Nastavení a `/ccp cursor on|off`.
   - Při povoleném kurzoru okno upozorní, když je modifikátor zároveň klik kurzoru (`Engine.CursorConflicts`).
 - **Výchozí hodnoty Forever** (podle `wowless` `data/products/wowf/cvars.yaml` a `camelot-cvars.txt`, neověřeno ve hře):
   - `GamePadCursorOnLogin = 1`: kurzor je zapnutý hned po přihlášení;
@@ -608,16 +608,34 @@ Uložená data (`ForeverPad.lua`) ukázala, že bindy byly použité bez chyb a 
   2. Zavření menu kurzor vypne.
   3. Každý další stisk Options jen zapne kurzor (`TryHandleFrameworkPreEsc` stisk spotřebuje).
   4. Pohyb páčkou kurzor zase vypne, takže se hráč k menu nedostane.
-- **Ruční přepínání kurzoru addonem nejde:** `SetGamePadCursorControl` volaný z addonu je ve Forever podle testovacích mocků jiného addonu pro Forever (`DingGuideWoWForever`, `tools/wow_mock.lua`) `ADDON_ACTION_FORBIDDEN`, s nabídkou addon vypnout. ForeverPad ho proto nevolá. Hráčův nápad „vypnout kurzor po 2–3 s nečinnosti myši“ je nahrazený záchrannou sítí přes CVary (v0.11.2):
+- **Ruční přepínání kurzoru addonem nejde:** `SetGamePadCursorControl` volaný z addonu je ve Forever podle testovacích mocků jiného addonu pro Forever (`DingGuideWoWForever`, `tools/wow_mock.lua`) `ADDON_ACTION_FORBIDDEN`, s nabídkou addon vypnout. CharacterControlPad ho proto nevolá. Hráčův nápad „vypnout kurzor po 2–3 s nečinnosti myši“ je nahrazený záchrannou sítí přes CVary (v0.11.2):
   - `Engine.Apply` dočasně drží `GamePadCursorAutoDisableSticks = 2` a `GamePadCursorAutoDisableJump = 1`. Pohyb páčkou nebo skok tak kurzor vypne vždy, i kdyby to hráč v nastavení vypnul. CVary, které klient nezná, se přeskočí.
   - `CursorGuard.lua` jen čte stav (`IsGamePadCursorControlEnabled`, `GetCursorPosition`). Když je kurzor zapnutý a myš 2,5 s stojí, ukáže nahoře hlášku „pohni levou páčkou nebo skoč“. Pohyb myši hlášku skryje.
-- **Blikání prázdného slotu při držení L2:** L2 vedlo na prázdný Hlavní bar #4. Opakované „stisknutí“ při držení odpovídá Blizzard funkci „drž a sesílej“, nejde o chybu ForeverPadu.
+- **Blikání prázdného slotu při držení L2:** L2 vedlo na prázdný Hlavní bar #4. Opakované „stisknutí“ při držení odpovídá Blizzard funkci „drž a sesílej“, nejde o chybu CharacterControlPadu.
 - **NOT CONFIRMED (ve hře):**
   - `CanAutoSetGamePadCursorControl` se řídí CVarem `GamePadCursorAutoEnable`;
   - se zapnutým kurzorem tlačítka kliku přestanou fungovat jako emulované modifikátory;
   - dočasná hodnota `0` platí hned, bez `/reload`;
   - `AutoDisableSticks` / `AutoDisableJump` opravdu vypnou kurzor i při `AutoEnable = 0`;
   - `IsGamePadCursorControlEnabled` vrací skutečný stav kurzoru.
+
+### 11.15 Výběr kořisti (v0.12.0)
+
+Popsáno v tabulce kapitoly 11.12 (řádek Kořist).
+
+### 11.16 Přejmenování na CharacterControlPad (v0.13.0)
+
+Na CurseForge už existuje jiný addon pro WoW: Forever se stejným názvem (ForeverPad, úprava HUDu ovladače). Má stejnou složku a příkaz `/foreverpad`. Addon se proto přejmenoval na **CharacterControlPad** (zkratka CCP) podle rozhodnutí uživatele.
+
+- **Nové názvy:**
+  - složka a TOC `CharacterControlPad`;
+  - SavedVariables `CharacterControlPadDB`;
+  - příkazy `/ccp` a `/charactercontrolpad`;
+  - globální rámce s předponou `CharacterControlPad`;
+  - předpona zpráv v chatu `CCP`.
+- **Starší kapitoly** tohoto auditu vznikly pod starým názvem. Ten je v nich nahrazen novým.
+- **Migrace dat:** SavedVariables se načítají podle názvu složky, takže starý soubor `ForeverPad.lua` nový addon sám nenačte. Hráč ho přejmenuje na `CharacterControlPad.lua`. `ns.LegacyData()` (Core.lua) pak převezme globální `ForeverPadDB`, pokud má tvar našich dat (`profiles` s `bindings` a `modifiers`, `characters`) a `CharacterControlPadDB` ještě neexistuje. Data cizího addonu se stejným názvem proměnné se ignorují a nikdy se nemažou.
+- **NOT CONFIRMED (ve hře):** klient při načtení SavedVariables nastaví i nedeklarovanou globální proměnnou `ForeverPadDB` ze souboru. Pokud ne, stačí v přejmenovaném souboru změnit první řádek na `CharacterControlPadDB = {`.
 
 ---
 

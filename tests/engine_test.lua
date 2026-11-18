@@ -28,16 +28,16 @@ C_InputInterfaceStyle = { GetCurrentStyle = function() return style end }
 ActionButton1 = { action = 1 }
 
 local ns = {}
-local function load(file) local chunk = assert(loadfile(ROOT .. file)); chunk("ForeverPad", ns) end
+local function load(file) local chunk = assert(loadfile(ROOT .. file)); chunk("CharacterControlPad", ns) end
 for _, f in ipairs({ "Core.lua", "Locale.lua", "Data.lua", "Profiles.lua", "BindingEngine.lua", "Commands.lua" }) do load(f) end
 
 -- simulate ADDON_LOADED + PLAYER_LOGIN through the event frame
 local function fire(e, ...) frames[1].OnEvent(frames[1], e, ...) end
 local function check(cond, msg) if not cond then error("FAIL: " .. msg, 2) end print("ok  " .. msg) end
 
-fire("ADDON_LOADED", "ForeverPad")
+fire("ADDON_LOADED", "CharacterControlPad")
 fire("PLAYER_LOGIN")
-local db = ForeverPadDB
+local db = CharacterControlPadDB
 check(db.profiles.Default ~= nil, "default profile created")
 check(db.characters["Tester-Realm"] == "Default", "character assigned to Default")
 check(db.lastApply.status == "active", "engine active in Mkb")
@@ -61,34 +61,34 @@ check(ns.Engine.ParseCombo("Foo", p) == nil, "unknown button rejected")
 check(ns.Engine.KeyToCombo("CTRL-SHIFT-PAD1", p) == "L1+R1+Cross", "key to combo label")
 check(ns.Engine.DescribeAction(p.bindings["PAD1"]):find("Lightning Bolt") ~= nil, "describe shows spell name")
 
-SlashCmdList.FOREVERPAD("map L2+Circle bar 3 7")
+SlashCmdList.CHARACTERCONTROLPAD("map L2+Circle bar 3 7")
 check(overrides["PADLTRIGGER"] == "MULTIACTIONBAR1BUTTON5", "L2 still plain trigger binding")
-SlashCmdList.FOREVERPAD("map L1+L2 bar 3 7")
+SlashCmdList.CHARACTERCONTROLPAD("map L1+L2 bar 3 7")
 check(overrides["SHIFT-PADLTRIGGER"] == "MULTIACTIONBAR2BUTTON7", "map L1+L2 -> bar3 #7")
-SlashCmdList.FOREVERPAD("map Mute cmd NOPE")
+SlashCmdList.CHARACTERCONTROLPAD("map Mute cmd NOPE")
 check(p.bindings["PAD5"] == nil, "invalid command refused")
-SlashCmdList.FOREVERPAD("map Mute cmd sitorstand")
+SlashCmdList.CHARACTERCONTROLPAD("map Mute cmd sitorstand")
 check(overrides["PAD5"] == "SITORSTAND", "command mapping (case-insensitive)")
-SlashCmdList.FOREVERPAD("unmap Mute")
+SlashCmdList.CHARACTERCONTROLPAD("unmap Mute")
 check(overrides["PAD5"] == nil, "unmap removes binding")
 
-SlashCmdList.FOREVERPAD("mod alt L1")
+SlashCmdList.CHARACTERCONTROLPAD("mod alt L1")
 check(p.modifiers.ALT == "none", "same button cannot be two modifiers")
-SlashCmdList.FOREVERPAD("mod alt L2")
+SlashCmdList.CHARACTERCONTROLPAD("mod alt L2")
 check(C_CVar.GetCVar("GamePadEmulateAlt") == "PADLTRIGGER", "alt = L2 applied")
 
-SlashCmdList.FOREVERPAD("profile copy Hunter")
+SlashCmdList.CHARACTERCONTROLPAD("profile copy Hunter")
 check(ns.Profiles.ActiveName() == "Hunter" and db.profiles.Hunter.bindings["SHIFT-PADLTRIGGER"] ~= nil, "profile copy + use")
-SlashCmdList.FOREVERPAD("profile rename Hunter2")
+SlashCmdList.CHARACTERCONTROLPAD("profile rename Hunter2")
 check(db.profiles.Hunter2 and not db.profiles.Hunter and db.characters["Tester-Realm"] == "Hunter2", "rename keeps assignment")
-SlashCmdList.FOREVERPAD("profile delete Default")
+SlashCmdList.CHARACTERCONTROLPAD("profile delete Default")
 check(db.profiles.Default ~= nil, "Default cannot be deleted")
-SlashCmdList.FOREVERPAD("profile delete Hunter2")
+SlashCmdList.CHARACTERCONTROLPAD("profile delete Hunter2")
 check(ns.Profiles.ActiveName() == "Default", "deleting active falls back to Default")
 
-SlashCmdList.FOREVERPAD("off")
+SlashCmdList.CHARACTERCONTROLPAD("off")
 check(next(overrides) == nil and C_CVar.GetCVar("GamePadEmulateShift") == "PADLTRIGGER", "off clears bindings and restores modifiers")
-SlashCmdList.FOREVERPAD("on")
+SlashCmdList.CHARACTERCONTROLPAD("on")
 check(overrides["PAD1"] == "ACTIONBUTTON1", "on re-applies")
 
 style = 1
@@ -98,7 +98,7 @@ check(C_CVar.GetCVar("GamePadEmulateShift") == "PADLTRIGGER", "gamepad UI restor
 style = 0
 
 InCombatLockdown = function() return true end
-SlashCmdList.FOREVERPAD("apply")
+SlashCmdList.CHARACTERCONTROLPAD("apply")
 check(next(overrides) == nil, "no binding change in combat")
 InCombatLockdown = function() return false end
 fire("PLAYER_REGEN_ENABLED")

@@ -1,6 +1,6 @@
--- ForeverPad - Audit
+-- CharacterControlPad - Audit
 -- Collects facts about the running client (API presence, CVars, gamepad devices,
--- existing gamepad bindings, action bars) into ForeverPadDB.audit.
+-- existing gamepad bindings, action bars) into CharacterControlPadDB.audit.
 -- Read-only: only getters are called, every call is wrapped in pcall.
 -- SavedVariables are written to disk on /reload or logout.
 
@@ -400,7 +400,7 @@ local function PrintSummary(a)
 		ns.Print("No gamepad device reported by C_GamePad.")
 	end
 	ns.Printf("Existing PAD bindings in current mode: %s", tostring(a.bindings.padBindingCount))
-	ns.Print("Saved to ForeverPadDB.audit - /reload writes it to disk.")
+	ns.Print("Saved to CharacterControlPadDB.audit - /reload writes it to disk.")
 end
 
 function ns.RunAudit(reason, quiet)
@@ -432,7 +432,7 @@ function ns.RunAudit(reason, quiet)
 	if not quiet then
 		local ok, err = pcall(PrintSummary, a)
 		if not ok then
-			ns.Print("Audit captured, but summary failed (see ForeverPadDB.audit):", tostring(err))
+			ns.Print("Audit captured, but summary failed (see CharacterControlPadDB.audit):", tostring(err))
 		end
 	end
 end

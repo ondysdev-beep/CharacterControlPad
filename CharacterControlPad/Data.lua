@@ -1,5 +1,5 @@
--- ForeverPad - static data
--- DualSense buttons (CONFIRMED via /fpad identify, TECHNICAL_AUDIT.md 10.1),
+-- CharacterControlPad - static data
+-- DualSense buttons (CONFIRMED via /ccp identify, TECHNICAL_AUDIT.md 10.1),
 -- Blizzard action bars (CONFIRMED in Blizzard_ActionBar/Shared/MultiActionBars.xml, forever branch),
 -- command catalog and the default profile.
 
@@ -124,7 +124,7 @@ for _, c in ipairs(ns.COMMANDS) do
 end
 
 ------------------------------------------------------------------------
--- Default profile (starting point only; every entry can be changed with /fpad map)
+-- Default profile (starting point only; every entry can be changed with /ccp map)
 -- L1 = SHIFT, R1 = CTRL (decided 2026-11-18). Keys are client binding strings.
 ------------------------------------------------------------------------
 

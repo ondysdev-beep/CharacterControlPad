@@ -1,4 +1,4 @@
--- ForeverPad - modifier panel
+-- CharacterControlPad - modifier panel
 -- Part of the Settings page of the settings window (Panel.Build).
 -- Choose which controller buttons act as SHIFT / CTRL / ALT (emulated by the client through
 -- GamePadEmulate* CVars, applied as temporary CVars by the engine). Changes are staged and
@@ -175,7 +175,7 @@ end
 ------------------------------------------------------------------------
 
 function Panel.Build(parent)
-	frame = CreateFrame("Frame", "ForeverPadModifierPanel", parent)
+	frame = CreateFrame("Frame", "CharacterControlPadModifierPanel", parent)
 	frame:SetAllPoints(parent)
 
 	ns.CreateHeading(frame, L.MODS_TITLE, 0, 0)

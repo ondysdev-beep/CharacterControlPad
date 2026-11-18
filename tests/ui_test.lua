@@ -52,18 +52,18 @@ MainActionBar = NewWidget() MultiBarBottomLeft = NewWidget() MultiBarBottomLeft.
 
 local ns = {}
 for _, f in ipairs({ "Core.lua", "Locale.lua", "Data.lua", "Profiles.lua", "BindingEngine.lua", "Compat.lua", "Commands.lua", "ConfigWindow.lua", "ActionPicker.lua" }) do
-  assert(loadfile(ROOT .. f))("ForeverPad", ns)
+  assert(loadfile(ROOT .. f))("CharacterControlPad", ns)
 end
 local core = eventFrames[1]
 local function fire(e, ...) core.scripts.OnEvent(core, e, ...) end
 local passed = 0
 local function ok(cond, msg) if not cond then error("FAIL: " .. msg, 2) end passed = passed + 1 end
 
-fire("ADDON_LOADED", "ForeverPad") fire("PLAYER_LOGIN")
-SlashCmdList.FOREVERPAD("")
-local cf = ForeverPadConfigFrame
-ok(cf and cf.shown, "/fpad opens config window")
-ok(cf.title.text:find("ForeverPad") ~= nil, "window title")
+fire("ADDON_LOADED", "CharacterControlPad") fire("PLAYER_LOGIN")
+SlashCmdList.CHARACTERCONTROLPAD("")
+local cf = CharacterControlPadConfigFrame
+ok(cf and cf.shown, "/ccp opens config window")
+ok(cf.title.text:find("CharacterControlPad") ~= nil, "window title")
 ok(cf.status.text:find("Default") and cf.status.text:find("active"), "status line shows profile + active")
 ok(cf.status.text:find("L1=SHIFT") and cf.status.text:find("R1=CTRL"), "status shows modifiers")
 
@@ -119,7 +119,7 @@ slots = slotsByKey()
 ok(slots["CTRL-SHIFT-PAD1"] ~= nil, "releasing returns to the chosen layer")
 
 click(slots["CTRL-SHIFT-PAD1"])
-local pk = ForeverPadActionPicker
+local pk = CharacterControlPadActionPicker
 ok(pk and pk.shown, "picker opens")
 ok(pk.title.text == "Assign: L1+R1+Cross", "picker title: " .. tostring(pk.title.text))
 local cells = {}
@@ -129,7 +129,7 @@ ok(#cells == 96, "96 bar cells")
 local target
 for _, c in ipairs(cells) do if c.bar == 3 and c.button == 7 then target = c end end
 target.scripts.OnClick(target)
-ok(ForeverPadDB.profiles.Default.bindings["CTRL-SHIFT-PAD1"].bar == 3, "picker stored bar 3")
+ok(CharacterControlPadDB.profiles.Default.bindings["CTRL-SHIFT-PAD1"].bar == 3, "picker stored bar 3")
 ok(overrides["CTRL-SHIFT-PAD1"] == "MULTIACTIONBAR2BUTTON7", "engine applied new binding")
 ok(not pk.shown, "picker closes after select")
 
@@ -149,7 +149,7 @@ ok(overrides["CTRL-SHIFT-PAD1"] == "TOGGLEWORLDMAP", "command assigned via picke
 slots = slotsByKey()
 ok(slots["CTRL-SHIFT-PAD1"].text.text:find("World map"), "command shown in the slot")
 click(slots["CTRL-SHIFT-PAD1"], "RightButton")
-ok(overrides["CTRL-SHIFT-PAD1"] == nil and ForeverPadDB.profiles.Default.bindings["CTRL-SHIFT-PAD1"] == nil, "right-click clears binding")
+ok(overrides["CTRL-SHIFT-PAD1"] == nil and CharacterControlPadDB.profiles.Default.bindings["CTRL-SHIFT-PAD1"] == nil, "right-click clears binding")
 slots = slotsByKey()
 ok(slots["CTRL-SHIFT-PAD1"].text.text:find("not assigned"), "cleared slot shows not assigned")
 
@@ -164,25 +164,25 @@ fire("PLAYER_REGEN_ENABLED")
 ok(slotsByKey()["CTRL-SHIFT-PAD1"].enabled == true, "unlocked after combat")
 
 cf.toggle.scripts.OnClick()
-ok(ForeverPadDB.enabled == false and next(overrides) == nil and cf.status.text:find("disabled"), "Disable button turns engine off")
+ok(CharacterControlPadDB.enabled == false and next(overrides) == nil and cf.status.text:find("disabled"), "Disable button turns engine off")
 
 -- pages
 cf.pageTabs.settings.scripts.OnClick()
 ok(cf.pages.settings.shown and not cf.pages.controller.shown and cf.pageTabs.settings.selected, "Settings tab")
-cf:Hide() SlashCmdList.FOREVERPAD("")
+cf:Hide() SlashCmdList.CHARACTERCONTROLPAD("")
 ok(cf.pages.settings.shown, "window reopens on the last page")
 cf.pageTabs.controller.scripts.OnClick()
 
-ForeverPadDB.enabled = true
-SlashCmdList.FOREVERPAD("mod alt L2")
-cf:Hide() SlashCmdList.FOREVERPAD("")
+CharacterControlPadDB.enabled = true
+SlashCmdList.CHARACTERCONTROLPAD("mod alt L2")
+cf:Hide() SlashCmdList.CHARACTERCONTROLPAD("")
 local layerTabs = 0
 for _, b in ipairs(cf.layerButtons) do if b.shown then layerTabs = layerTabs + 1 end end
 ok(layerTabs == 8, "8 layer buttons with 3 modifiers, got " .. layerTabs)
 
 -- missing click target and empty bar slot
-ForeverPadDB.profiles.Default.bindings.PAD5 = { type = "click", button = "NoSuchButton" }
-ForeverPadDB.profiles.Default.bindings.PADFORWARD = { type = "bar", bar = 1, button = 2 }
+CharacterControlPadDB.profiles.Default.bindings.PAD5 = { type = "click", button = "NoSuchButton" }
+CharacterControlPadDB.profiles.Default.bindings.PADFORWARD = { type = "bar", bar = 1, button = 2 }
 cf.layerButtons[1].scripts.OnClick(cf.layerButtons[1])
 slots = slotsByKey()
 ok(slots.PAD5.text.text:find("button not found"), "missing click target flagged")

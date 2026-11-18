@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.13.0 - 2026-11-18
+- Renamed from ForeverPad to **CharacterControlPad** (CCP), because another addon called ForeverPad
+  already exists. New folder `CharacterControlPad`, new command **`/ccp`** (also `/charactercontrolpad`).
+- Upgrading: delete the old `ForeverPad` folder. To keep your profiles, rename the saved file
+  `WTF\Account\<account>\SavedVariables\ForeverPad.lua` to `CharacterControlPad.lua` while the game
+  is closed. The addon takes the old data over automatically.
+- The older entries below were released as ForeverPad. They now use the new name.
+
 ## 0.12.0 - 2026-11-18
 - Loot window: choose what to take. The D-pad Up / Down chooses an item (gold frame), Cross takes
   it and the selection moves to the next item, Square takes everything, Circle closes the window.
@@ -14,10 +22,10 @@
 ## 0.11.1 - 2026-11-18
 - Fix: controls stopped working after opening the game menu or a window, and R1 / R2 combos did
   not work while a window was open. The game switched to its own gamepad cursor (the left stick
-  moves the cursor, R1 / R2 click). ForeverPad now keeps that automatic cursor off while it is
+  moves the cursor, R1 / R2 click). CharacterControlPad now keeps that automatic cursor off while it is
   active, so windows are used with the mouse and the controller stays on the character. This is a
   temporary setting: your game settings are not changed.
-- Option **Don't switch to the gamepad cursor** on the Settings tab and `/fpad cursor on|off`.
+- Option **Don't switch to the gamepad cursor** on the Settings tab and `/ccp cursor on|off`.
   With the cursor allowed, the window warns when a modifier is also a cursor click button.
 
 ## 0.11.0 - 2026-11-18
@@ -39,7 +47,7 @@
   mail and learns at a trainer, and Square moves items at the bank.
 - Your own bindings are not changed, combos with modifiers are never affected, and the context
   controls are always off in combat.
-- New **Windows** panel and `/fpad context`: switch the context controls on/off as a whole, per
+- New **Windows** panel and `/ccp context`: switch the context controls on/off as a whole, per
   window, and the button hints shown under the window.
 
 ## 0.9.1 - 2026-11-18
@@ -48,17 +56,17 @@
 
 ## 0.9.0 - 2026-11-18
 - English and Czech interface. Czech is chosen automatically when WowfCZ is enabled. Switch with the
-  button in the window or `/fpad lang`.
+  button in the window or `/ccp lang`.
 - Bundled Noto Sans font (SIL OFL) for Czech characters. Blizzard fonts and the game tooltip are not changed.
 
 ## 0.8.0 - 2026-11-18
 - Buttons of other bar addons (Bartender4, Dominos, ElvUI ...) can be bound by hovering them in quick
-  bind mode (`click` actions, also `/fpad map <combo> click <Button>`).
+  bind mode (`click` actions, also `/ccp map <combo> click <Button>`).
 - Detection of combos taken over by another addon. ConsolePort is reported as a conflict, and bar addons
   get a hint.
 
 ## 0.7.0 - 2026-11-18
-- Diagnostics moved under `/fpad debug`. Nothing is logged or saved unless debug mode is on.
+- Diagnostics moved under `/ccp debug`. Nothing is logged or saved unless debug mode is on.
   Old diagnostic data is removed. Only one chat line at login.
 
 ## 0.6.0 - 2026-11-18
