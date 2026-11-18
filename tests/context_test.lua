@@ -263,7 +263,36 @@ ok(effective("PAD1") == "CLICK ForeverPadContextFnPAD1:LeftButton", "loot: Cross
 ForeverPadContextFnPAD1.scripts.OnClick(ForeverPadContextFnPAD1)
 ok(#looted == 3 and looted[1] == 3, "loots every slot")
 ok(effective("PAD2") == "TOGGLEGAMEMENU", "loot window closable with Circle")
-LootFrame.shown = false
+LootFrame.shown = false refresh()
+
+-- loot list: D-pad chooses, Cross takes the selected item, Square takes everything
+local function lootEntry(slot, top) return Plain({ top = top, Item = Plain({}), GetSlotIndex = function() return slot end }) end
+local e1, e2, e3 = lootEntry(1, 300), lootEntry(2, 250), lootEntry(3, 200)
+local emptyEntry = Plain({ top = 350, GetSlotIndex = function() return 9 end }) -- base element without an item button
+LootFrame = Plain({ ScrollBox = { GetFrames = function() return { e3, emptyEntry, e1, e2 } end } })
+looted = {}
+refresh()
+ok(effective("PAD1") == "CLICK ForeverPadContextFnPAD1:LeftButton" and effective("PAD3") == "CLICK ForeverPadContextFnPAD3:LeftButton", "loot list: Cross and Square bound")
+ok(effective("PADDDOWN") == "CLICK ForeverPadContextFnPADDDOWN:LeftButton" and effective("PAD2") == "TOGGLEGAMEMENU", "loot list: D-pad chooses, Circle closes")
+ok(ForeverPadContextHighlight.shown and ForeverPadContextHighlight.allPoints == e1, "first item selected (entries without an item skipped, sorted top-down)")
+ForeverPadContextFnPADDDOWN.scripts.OnClick(ForeverPadContextFnPADDDOWN)
+ok(ForeverPadContextHighlight.allPoints == e2, "Down selects the next item")
+ForeverPadContextFnPAD1.scripts.OnClick(ForeverPadContextFnPAD1)
+ok(#looted == 1 and looted[1] == 2, "Cross takes only the selected item")
+e2.shown = false runTimers()
+ok(ForeverPadContextHighlight.allPoints == e3, "after taking it, the selection stays in place (next item)")
+local lootHint = ForeverPadContextHints.text.text
+ok(lootHint:find("Take", 1, true) and lootHint:find("Loot all", 1, true) and lootHint:find("D-pad", 1, true) and lootHint:find("Close", 1, true), "loot hint: " .. lootHint)
+ForeverPadContextFnPAD3.scripts.OnClick(ForeverPadContextFnPAD3)
+ok(#looted == 4, "Square takes everything")
+e1.shown = false e3.shown = false refresh()
+ok(not ForeverPadContextHighlight.shown and effective("PAD3") == "ACTIONBUTTON3", "nothing left -> no selection, Square back to normal")
+LootFrame.shown = false refresh()
+e1.shown, e2.shown, e3.shown = true, true, true
+LootFrame.shown = true ForeverPadContextFnPADDDOWN.scripts.OnClick(ForeverPadContextFnPADDDOWN) refresh()
+LootFrame.shown = false refresh() LootFrame.shown = true refresh()
+ok(ForeverPadContextHighlight.allPoints == e1, "reopened loot window starts at the first item")
+LootFrame.shown = false refresh()
 MailFrame = Plain({}) InboxFrame = Plain({}) OpenAllMail = Plain({}) refresh()
 ok(ForeverPadContextPAD1.attributes.clickbutton == OpenAllMail and effective("PAD1") == "CLICK ForeverPadContextPAD1:LeftButton", "mail: Cross opens all")
 MailFrame.shown = false InboxFrame.shown = false

@@ -5,7 +5,7 @@
 --               Triangle repairs everything, Options sells all junk
 --   NPC/quests  D-pad Up/Down chooses an option, Cross confirms (accept / continue / complete)
 --   dialogs     Cross accepts, Circle declines (popups, ready check, dungeon queue, role check)
---   loot        Cross loots everything
+--   loot        D-pad Up/Down chooses an item, Cross takes it, Square takes everything
 --   mail        Cross opens all mail;  bank: Square moves the hovered item;  trainer: Cross trains
 --
 -- How it stays safe:
@@ -266,11 +266,36 @@ local function QuestList()
 	return nil
 end
 
-local function UseList(list, defaultIndex)
+-- Loot window (Blizzard_UIPanels_Game/Mainline/LootFrame.lua): ScrollBox element frames with
+-- GetSlotIndex() and an .Item button; looted entries are hidden (LOOT_SLOT_CLEARED).
+local function LootList()
+	local frame = Frame("LootFrame")
+	local box = frame and rawget(frame, "ScrollBox")
+	if type(box) ~= "table" or type(box.GetFrames) ~= "function" then
+		return nil
+	end
+	local ok, frames = pcall(box.GetFrames, box)
+	if not ok or type(frames) ~= "table" then
+		return nil
+	end
+	local list = {}
+	for _, f in ipairs(frames) do
+		if type(f) == "table" and type(f.GetSlotIndex) == "function" and rawget(f, "Item") and Visible(f) then
+			list[#list + 1] = f
+		end
+	end
+	return ByTop(list)
+end
+
+-- keep = after the list changes, stay at the same position (the next entry) instead of the default
+local function UseList(list, defaultIndex, keep)
 	local sig = tostring(#list) .. ":" .. tostring(list[1]) .. ":" .. tostring(list[#list])
 	if sig ~= nav.signature then
+		local fresh = nav.signature == ""
 		nav.signature = sig
-		nav.index = defaultIndex or 1
+		if fresh or not keep then
+			nav.index = defaultIndex or 1
+		end
 	end
 	nav.list = list
 	if nav.index > #list then
@@ -305,6 +330,21 @@ local function LootAll()
 	end
 	for slot = GetNumLootItems(), 1, -1 do
 		pcall(LootSlot, slot)
+	end
+end
+
+-- Takes the entry selected with the D-pad (same LootSlot call as LootAll, one slot).
+local function LootSelected()
+	local f = nav.list[nav.index]
+	if type(f) ~= "table" or type(f.GetSlotIndex) ~= "function" or type(LootSlot) ~= "function" then
+		return
+	end
+	local ok, slot = pcall(f.GetSlotIndex, f)
+	if ok and type(slot) == "number" then
+		pcall(LootSlot, slot)
+	end
+	if C_Timer and C_Timer.After then
+		C_Timer.After(0, Context.Refresh)
 	end
 end
 
@@ -389,12 +429,32 @@ CONTEXTS.popup = function(c)
 	end
 end
 
+local function NavButtons(c, anchor)
+	c.Claim(KEY.UP, { kind = "func", fn = function() Context.Navigate(-1) end, label = L.CTX_CHOOSE, sig = "nav-up" })
+	c.Claim(KEY.DOWN, { kind = "func", fn = function() Context.Navigate(1) end, label = L.CTX_CHOOSE, sig = "nav-down" })
+	c.Hint(KEY.UP, L.CTX_CHOOSE, anchor)
+end
+
+-- D-pad chooses an item, Cross takes it, Square takes everything (Circle closes, see "close").
 CONTEXTS.loot = function(c)
 	if not Shown("LootFrame") then
 		return
 	end
-	c.Claim(KEY.CROSS, { kind = "func", fn = LootAll, label = L.CTX_LOOT_ALL })
-	c.Hint(KEY.CROSS, L.CTX_LOOT_ALL, "LootFrame")
+	local list = LootList()
+	if not list or #list == 0 then
+		-- no item list available (other loot UI, or only coins being animated out): take everything
+		c.Claim(KEY.CROSS, { kind = "func", fn = LootAll, label = L.CTX_LOOT_ALL })
+		c.Hint(KEY.CROSS, L.CTX_LOOT_ALL, "LootFrame")
+		return
+	end
+	c.navTarget = UseList(list, 1, true)
+	c.Claim(KEY.CROSS, { kind = "func", fn = LootSelected, label = L.CTX_LOOT_ONE, sig = "loot-selected" })
+	c.Hint(KEY.CROSS, L.CTX_LOOT_ONE, "LootFrame")
+	c.Claim(KEY.SQUARE, { kind = "func", fn = LootAll, label = L.CTX_LOOT_ALL })
+	c.Hint(KEY.SQUARE, L.CTX_LOOT_ALL)
+	if #list > 1 then
+		NavButtons(c)
+	end
 end
 
 CONTEXTS.merchant = function(c)
@@ -445,6 +505,9 @@ CONTEXTS.trainer = function(c)
 end
 
 CONTEXTS.quest = function(c)
+	if c.navTarget then
+		return -- the loot window already uses the D-pad list
+	end
 	local list, default = QuestList()
 	local anchor = "QuestFrame"
 	if not list then
@@ -457,9 +520,7 @@ CONTEXTS.quest = function(c)
 	c.navTarget = target
 	c.Claim(KEY.CROSS, Click(target, L.CTX_SELECT))
 	if #list > 1 then
-		c.Claim(KEY.UP, { kind = "func", fn = function() Context.Navigate(-1) end, label = L.CTX_CHOOSE, sig = "nav-up" })
-		c.Claim(KEY.DOWN, { kind = "func", fn = function() Context.Navigate(1) end, label = L.CTX_CHOOSE, sig = "nav-down" })
-		c.Hint(KEY.UP, L.CTX_CHOOSE, anchor)
+		NavButtons(c, anchor)
 	end
 	c.Hint(KEY.CROSS, L.CTX_SELECT, anchor)
 end

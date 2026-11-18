@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.12.0 - 2026-11-18
+- Loot window: choose what to take. The D-pad Up / Down chooses an item (gold frame), Cross takes
+  it and the selection moves to the next item, Square takes everything, Circle closes the window.
+
 ## 0.11.2 - 2026-11-18
 - Safety net for the gamepad cursor: moving a stick or jumping always turns the game's gamepad
   cursor off and gives the controller back to the character (temporary setting, also when the

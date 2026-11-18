@@ -1,7 +1,7 @@
 # ForeverPad – Technický audit (Fáze 0)
 
 **Datum:** 2026-11-18
-**Stav:** Fáze 0–4 jsou ověřené ve hře (kapitoly 9 a 10). Fáze 5, konfigurátor, kontextové ovládání oken a nové okno nastavení (v0.3–0.11.2) jsou hotové a otestované mimo hru (260+ testů, `npm test`). Čeká se na souhrnný test ve hře (kapitola 11).
+**Stav:** Fáze 0–4 jsou ověřené ve hře (kapitoly 9 a 10). Fáze 5, konfigurátor, kontextové ovládání oken a nové okno nastavení (v0.3–0.12.0) jsou hotové a otestované mimo hru (260+ testů, `npm test`). Čeká se na souhrnný test ve hře (kapitola 11).
 
 Značení podle zadání:
 
@@ -542,7 +542,7 @@ Požadavek hráče: kolečko u obchodníka sesílalo kouzlo místo zavření okn
 | Skupina | Detekce | Tlačítko → akce |
 |---|---|---|
 | Potvrzovací okna | `StaticPopup1-4` (`ButtonContainer.Button1/2`, `GameDialog.xml`), `ReadyCheckFrame`, `LFGDungeonReadyDialog`, `LFDRoleCheckPopup`, `LFGInvitePopup` | Křížek = tlačítko 1 / Yes / Enter, Kolečko = tlačítko 2 / No / Leave |
-| Kořist | `LootFrame` | Křížek = `LootSlot` všech slotů |
+| Kořist | `LootFrame`; od v0.12.0 seznam `LootFrame.ScrollBox:GetFrames()` (prvky s `GetSlotIndex()` a `.Item`, sebrané se skryjí, `LootFrame.lua`) | D-pad ↑↓ výběr, Křížek = `LootSlot` vybraného slotu, Čtverec = `LootSlot` všech slotů. Bez seznamu Křížek = vše |
 | Obchodník | `MerchantFrame`; předmět `MerchantItem%dItemButton`; předmět v batohu = má `GetBagID` a rodiče s `GetBagID` (pool bez jmen) | Křížek = pravý klik (koupit / buyback), Čtverec = pravý klik (prodat), Trojúhelník = `MerchantRepairAllButton`, Options = `MerchantSellAllJunkButton` |
 | Banka | `BankFrame` (Camelot/BankFrame.xml); bankovní předmět = `GetBankTabID` + `GetContainerSlotID` | Čtverec = pravý klik (přesun) |
 | Pošta | `InboxFrame` + `OpenAllMail` | Křížek = otevřít vše |
@@ -557,7 +557,7 @@ Požadavek hráče: kolečko u obchodníka sesílalo kouzlo místo zavření okn
   - binding click na skrytý `SecureActionButton` reaguje na stisk (`useOnKeyDown`);
   - `GetMouseFoci()` vrací přímo tlačítko předmětu;
   - pořadí položek v rozhovoru odpovídá zvýraznění;
-  - `LootSlot` z addonu bere kořist bez blokace.
+  - výběr jednoho předmětu kořisti (v0.12.0). `LootSlot` z addonu ve hře funguje: hráč potvrdil sebrání všeho (v0.11.2).
 
 ### 11.13 Nové okno nastavení (v0.11.0)
 

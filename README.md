@@ -6,7 +6,7 @@ ForeverPad maps controller buttons and button combos to your normal Blizzard act
 their layout and the Edit Mode stay exactly as you set them up. The keyboard and mouse keep working
 at the same time.
 
-> Status: **beta (0.11.x)**. Built for WoW: Forever 1.60.1 (interface 16001). Feedback welcome.
+> Status: **beta (0.12.x)**. Built for WoW: Forever 1.60.1 (interface 16001). Feedback welcome.
 
 ## Features
 
@@ -23,8 +23,9 @@ at the same time.
     sells junk.
   - **NPC dialogs and quests:** the D-pad chooses and Cross accepts, continues or completes.
   - **Dialogs** (ready check, dungeon queue, invitations): Cross accepts, Circle declines.
-  - **Other windows:** Cross loots everything, opens all mail and learns at a trainer. At the bank,
-    Square moves the item under the cursor.
+  - **Loot:** the D-pad chooses an item, Cross takes it, Square takes everything.
+  - **Other windows:** Cross opens all mail and learns at a trainer. At the bank, Square moves the
+    item under the cursor.
 
   A hint line under the window shows the buttons. Each part can be switched off on the **Windows**
   tab of the settings window.
@@ -118,6 +119,7 @@ Tlačítka a kombinace ovladače si namapuješ na své běžné action bary. Kl�
   - **U obchodníka** Křížek koupí a Čtverec prodá předmět pod kurzorem, Trojúhelník opraví vše a
     Options prodá odpad.
   - **U NPC a questů** D-pad vybírá a Křížek potvrdí.
+  - **U kořisti** D-pad vybírá předmět, Křížek ho sebere a Čtverec sebere všechno.
   - **V potvrzovacích oknech** Křížek potvrdí a Kolečko odmítne.
   - Vypnout se dá v záložce **Okna**.
   - V boji je vypnuté a platí tvoje bindy.
