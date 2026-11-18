@@ -41,6 +41,9 @@ at the same time.
 ## Requirements
 
 - WoW: Forever with **controller support enabled** in the game options.
+- ForeverPad is made for **the character on the controller and windows with the mouse**. It keeps
+  the game's automatic gamepad cursor off (the stick stays on the character, R1 / R2 stay modifiers);
+  switch it back with `/fpad cursor on` or on the Settings tab.
 - ForeverPad works in the **mouse & keyboard interface**. When you switch the game to Blizzard's own
   gamepad interface, ForeverPad pauses itself, because that interface has its own fixed controls.
 - The DualSense is recognised natively. Steam Input is not needed.
@@ -74,6 +77,7 @@ Copy the `ForeverPad` folder to
 | `/fpad mod shift L1` | set modifier buttons (shift / ctrl / alt) |
 | `/fpad profile ...` | profiles: use, new, template, copy, rename, delete, reset |
 | `/fpad context` | context controls for windows (`on`, `off`, `status`, `hints on\|off`, `merchant off` ...) |
+| `/fpad cursor on\|off` | `off` (default): the game never switches to its gamepad cursor, windows are used with the mouse |
 | `/fpad on` / `/fpad off` | enable / disable ForeverPad |
 | `/fpad lang en \| cs \| auto` | language |
 | `/fpad setup` | run the setup wizard again |
@@ -119,3 +123,6 @@ Tlačítka a kombinace ovladače si namapuješ na své běžné action bary. Kl�
   - V boji je vypnuté a platí tvoje bindy.
 - **Čeština** se zapne sama, když máš zapnutý překlad WowfCZ. Ručně ji přepneš tlačítkem v okně nebo `/fpad lang cs`.
 - ForeverPad funguje v rozhraní pro myš a klávesnici. V Blizzard režimu pro ovladač se sám pozastaví.
+- Postava se ovládá ovladačem, okna myší. ForeverPad proto vypíná automatický kurzor ovladače, takže
+  páčka zůstane na postavě a R1 / R2 fungují jako modifikátory. Vrátit to jde příkazem `/fpad cursor on`
+  nebo v záložce Nastavení.

@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.11.1 - 2026-11-18
+- Fix: controls stopped working after opening the game menu or a window, and R1 / R2 combos did
+  not work while a window was open. The game switched to its own gamepad cursor (the left stick
+  moves the cursor, R1 / R2 click). ForeverPad now keeps that automatic cursor off while it is
+  active, so windows are used with the mouse and the controller stays on the character. This is a
+  temporary setting: your game settings are not changed.
+- Option **Don't switch to the gamepad cursor** on the Settings tab and `/fpad cursor on|off`.
+  With the cursor allowed, the window warns when a modifier is also a cursor click button.
+
 ## 0.11.0 - 2026-11-18
 - New settings window, simpler and clearer, with three tabs: **Controller**, **Windows** and **Settings**.
 - **Controller** tab: a picture of the controller with every button around it, showing the icon and

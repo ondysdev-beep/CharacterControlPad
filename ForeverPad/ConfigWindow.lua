@@ -790,10 +790,43 @@ local function BuildSettingsPage(page)
 	local setupNote = ns.CreateText(page, "GameFontDisableSmall", x, -252, w)
 	setupNote:SetText(L.SETTINGS_SETUP_NOTE)
 
+	ns.CreateHeading(page, L.CURSOR_HEADING, x, -284)
+	local okCheck, check = pcall(CreateFrame, "CheckButton", nil, page, "UICheckButtonTemplate")
+	if not okCheck or not check then
+		check = CreateFrame("CheckButton", nil, page)
+	end
+	check:SetSize(26, 26)
+	check:SetPoint("TOPLEFT", page, "TOPLEFT", x - 4, -306)
+	check.label = ns.CreateText(page, "GameFontNormal", x + 26, -311, w - 26)
+	check.label:SetText(L.CURSOR_KEEP_OFF)
+	check:SetScript("OnClick", function(self)
+		if InCombatLockdown() then
+			self:SetChecked(Engine.KeepCursorOff())
+			ns.Print(L.COMBAT_LOCKED)
+			return
+		end
+		ns.db.keepCursorOff = self:GetChecked() and true or false
+		Engine.Apply("cursor setting")
+		Config.Refresh()
+	end)
+	check:SetScript("OnEnter", function(self)
+		ns.ShowTextTooltip(self, L.CURSOR_KEEP_OFF, L.CURSOR_KEEP_OFF_DESC)
+	end)
+	check:SetScript("OnLeave", ns.HideTooltip)
+	frame.cursorCheck = check
+	page.cursorNote = ns.CreateText(page, "GameFontHighlightSmall", x, -336, w)
+
 	function page:Refresh()
 		self.profileText:SetText(string.format(L.PROFILES_ACTIVE, Profiles.ActiveName()))
+		local keepOff = Engine.KeepCursorOff()
+		frame.cursorCheck:SetChecked(keepOff)
+		if keepOff then
+			self.cursorNote:SetText(L.CURSOR_KEEP_OFF_DESC)
+		else
+			self.cursorNote:SetText(Config.CursorWarning() or L.CURSOR_ON_NOTE)
+		end
 		local locked = InCombatLockdown()
-		for _, b in ipairs({ self.manageProfiles, frame.language, frame.setupButton }) do
+		for _, b in ipairs({ self.manageProfiles, frame.language, frame.setupButton, frame.cursorCheck }) do
 			if locked then
 				b:Disable()
 			else
@@ -804,6 +837,23 @@ local function BuildSettingsPage(page)
 			ns.ModifierPanel.Refresh()
 		end
 	end
+end
+
+-- Warning when the game's gamepad cursor may take over modifier buttons (nil = no problem).
+function Config.CursorWarning()
+	if Engine.KeepCursorOff() then
+		return nil
+	end
+	local profile = Profiles.Active()
+	local names = {}
+	for _, c in ipairs(Engine.CursorConflicts(profile)) do
+		local b = ns.buttonByKey[c.key]
+		names[#names + 1] = b and b.label or c.key
+	end
+	if #names == 0 then
+		return nil
+	end
+	return string.format(L.CURSOR_CONFLICT, table.concat(names, ", "))
 end
 
 ------------------------------------------------------------------------
@@ -963,7 +1013,16 @@ function Config.Refresh()
 		end
 	end
 	frame.errors:SetText(errorCount > 0 and string.format(L.ERRORS, errorCount) or "")
-	frame.compat:SetText(ns.Compat and ns.Compat.Summary() or "")
+	local notes = {}
+	local compat = ns.Compat and ns.Compat.Summary() or ""
+	if compat ~= "" then
+		notes[#notes + 1] = compat
+	end
+	local cursorWarning = Config.CursorWarning()
+	if cursorWarning then
+		notes[#notes + 1] = cursorWarning
+	end
+	frame.compat:SetText(table.concat(notes, "  "))
 	frame.toggle:SetText(ns.db.enabled and L.DISABLE or L.ENABLE)
 	for _, b in ipairs({ frame.toggle, frame.profileButton }) do
 		if locked then

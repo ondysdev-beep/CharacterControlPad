@@ -1,7 +1,7 @@
 # ForeverPad – Technický audit (Fáze 0)
 
 **Datum:** 2026-11-18
-**Stav:** Fáze 0–4 jsou ověřené ve hře (kapitoly 9 a 10). Fáze 5, konfigurátor, kontextové ovládání oken a nové okno nastavení (v0.3–0.11.0) jsou hotové a otestované mimo hru (260+ testů, `npm test`). Čeká se na souhrnný test ve hře (kapitola 11).
+**Stav:** Fáze 0–4 jsou ověřené ve hře (kapitoly 9 a 10). Fáze 5, konfigurátor, kontextové ovládání oken a nové okno nastavení (v0.3–0.11.1) jsou hotové a otestované mimo hru (260+ testů, `npm test`). Čeká se na souhrnný test ve hře (kapitola 11).
 
 Značení podle zadání:
 
@@ -579,6 +579,30 @@ Požadavek hráče: nastavení je moc složité, chce ho přehlednější a hez�
   - `IsShiftKeyDown` a další vrací `true` i pro modifikátor emulovaný tlačítkem ovladače (`GamePadEmulateShift`);
   - `Button:SetFontString` u plochých tlačítek a font `GameFontNormalLarge` (v češtině jeho kopie s Noto Sans);
   - okno 860×520 se vejde na obrazovku i při velkém měřítku UI (okno je `SetClampedToScreen`).
+
+### 11.14 Kurzor ovladače (v0.11.1)
+
+První test hráče (bratr uživatele, verze 0.10.0) hlásil tyto problémy:
+
+- herní menu jde otevřít jen jednou a potom „nic nejde“;
+- R2+Křížek nesešle kouzlo;
+- bindy „jako by se hádaly“.
+
+Uložená data (`ForeverPad.lua`) ukázala, že bindy byly použité bez chyb a bez konfliktů. Příčinu ukazuje `GamePadCursorAutoEnable = 1` spolu s `GamePadCursorLeftClick = PADRTRIGGER` a `GamePadCursorRightClick = PADRSHOULDER`. R2 a R1 jsou u hráče zároveň modifikátory (SHIFT, CTRL).
+
+- **Zdroj (větev `forever`):**
+  - `Blizzard_Game/Shared/Game.lua`: v řetězci Esc má `TryHandleFrameworkPreEsc` vyšší prioritu než otevření menu. Když `CanAutoSetGamePadCursorControl(true)`, Esc buď zruší cíl, nebo zavolá `SetGamePadCursorControl(true)` a stisk spotřebuje.
+  - `TryHandleWorldEsc` kurzor zase vypíná.
+  - `UIParentPanelManager.lua`, `ContainerFrame.lua`, `LootFrame.lua` a `GameMenuFrame.lua` zapínají kurzor při otevření okna a vypínají ho při zavření.
+- **Hypotéza:** když je kurzor zapnutý, levá páčka hýbe kurzorem a R1 / R2 klikají místo modifikátorů. Když se kurzor nevypne, ovládání postavy „přestane fungovat“.
+- **Oprava:** `Engine.Apply` nastavuje dočasně `SetTempCVar("GamePadCursorAutoEnable", "0")`, dokud je ForeverPad aktivní. Při vypnutí ForeverPadu a v Blizzard gamepad UI se volá `RemoveTempCVar`. Nastavení hráče se do Config.wtf nezapisuje. `SetGamePadCursorControl` ForeverPad nevolá.
+  - Volba `ns.db.keepCursorOff` (výchozí zapnuto): checkbox v záložce Nastavení a `/fpad cursor on|off`.
+  - Při povoleném kurzoru okno upozorní, když je modifikátor zároveň klik kurzoru (`Engine.CursorConflicts`).
+- **Blikání prázdného slotu při držení L2:** L2 vedlo na prázdný Hlavní bar #4. Opakované „stisknutí“ při držení odpovídá Blizzard funkci „drž a sesílej“, nejde o chybu ForeverPadu.
+- **NOT CONFIRMED (ve hře):**
+  - `CanAutoSetGamePadCursorControl` se řídí CVarem `GamePadCursorAutoEnable`;
+  - se zapnutým kurzorem tlačítka kliku přestanou fungovat jako emulované modifikátory;
+  - dočasná hodnota `0` platí hned, bez `/reload`.
 
 ---
 

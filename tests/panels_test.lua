@@ -14,6 +14,8 @@ function Widget:IsShown() return self.shown == true end
 function Widget:IsVisible() return self.shown == true end
 function Widget:SetScript(k, fn) self.scripts[k] = fn end
 function Widget:HookScript(k, fn) local old = self.scripts[k] self.scripts[k] = function(...) if old then old(...) end fn(...) end end
+function Widget:SetChecked(v) self.checked = v and true or false end
+function Widget:GetChecked() return self.checked == true end
 function Widget:Enable() self.enabled = true end
 function Widget:Disable() self.enabled = false end
 function Widget:LockHighlight() self.locked = true end
@@ -123,6 +125,24 @@ btn(2, 1).scripts.OnClick() -- CTRL = none (staged)
 ok(mp.apply.enabled == true, "change staged")
 mp.revert.scripts.OnClick()
 ok(mp.apply.enabled == false and p.modifiers.CTRL == "PADRTRIGGER", "revert drops the staged change")
+
+---------------- gamepad cursor ----------------
+cvars.GamePadCursorAutoEnable = "1" cvars.GamePadCursorLeftClick = "PADRTRIGGER" cvars.GamePadCursorRightClick = "PADRSHOULDER"
+ns.Engine.Apply("test") ns.Config.Refresh()
+ok(tempcvars.GamePadCursorAutoEnable == "0" and C_CVar.GetCVar("GamePadCursorAutoEnable") == "0", "automatic gamepad cursor kept off by default (temp CVar only)")
+ok(db.lastApply.cursor and db.lastApply.cursor.ok, "cursor state recorded")
+ok(cf.cursorCheck.checked == true and cf.pages.settings.cursorNote.text:find("mouse"), "cursor checkbox on, explained")
+ok(not cf.compat.text:find("gamepad cursor click"), "no conflict warning while the cursor is kept off")
+cf.cursorCheck.checked = false cf.cursorCheck.scripts.OnClick(cf.cursorCheck)
+ok(db.keepCursorOff == false and tempcvars.GamePadCursorAutoEnable == nil and C_CVar.GetCVar("GamePadCursorAutoEnable") == "1", "unchecking gives the cursor back to the game")
+ok(cf.compat.text:find("R2: modifier and also a gamepad cursor click"), "R2 (CTRL) flagged as cursor click: " .. tostring(cf.compat.text))
+ok(cf.pages.settings.cursorNote.text:find("R2"), "settings page shows the conflict")
+SlashCmdList.FOREVERPAD("cursor off")
+ok(db.keepCursorOff == true and tempcvars.GamePadCursorAutoEnable == "0", "/fpad cursor off")
+SlashCmdList.FOREVERPAD("off")
+ok(tempcvars.GamePadCursorAutoEnable == nil, "disabling ForeverPad restores the cursor setting")
+SlashCmdList.FOREVERPAD("on")
+ok(tempcvars.GamePadCursorAutoEnable == "0", "enabling keeps it off again")
 
 ---------------- profiles panel ----------------
 ok(cf.profileButton.text == "Profile: Default", "profile button shows the active profile")

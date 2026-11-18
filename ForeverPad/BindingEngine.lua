@@ -298,6 +298,55 @@ local function ApplyModifiers(mods)
 end
 
 ------------------------------------------------------------------------
+-- Gamepad cursor (temporary CVar)
+------------------------------------------------------------------------
+-- With GamePadCursorAutoEnable = 1 the client switches to its gamepad cursor whenever a window
+-- opens and on Esc (Blizzard_Game/Shared/Game.lua, UIParentPanelManager.lua): the left stick then
+-- moves the cursor and GamePadCursorLeftClick / RightClick buttons click - often R2 / R1, which
+-- ForeverPad uses as modifiers. ForeverPad is meant for "character on the controller, windows
+-- with the mouse", so by default it keeps the automatic cursor off while it is active.
+
+local CURSOR_CVAR = "GamePadCursorAutoEnable"
+local CURSOR_CLICK_CVARS = { "GamePadCursorLeftClick", "GamePadCursorRightClick" }
+
+function Engine.KeepCursorOff()
+	return ns.db.keepCursorOff ~= false
+end
+
+local function RevertCursor()
+	pcall(C_CVar.RemoveTempCVar, CURSOR_CVAR)
+end
+
+local function ApplyCursor()
+	if not Engine.KeepCursorOff() then
+		RevertCursor()
+		return nil
+	end
+	local current = GetCVarValue(CURSOR_CVAR)
+	if current ~= nil and current ~= "0" then
+		pcall(C_CVar.SetTempCVar, CURSOR_CVAR, "0")
+		current = GetCVarValue(CURSOR_CVAR)
+	end
+	return { wanted = "0", actual = Safe(current), ok = (current == "0" or current == nil) }
+end
+
+-- Modifier buttons that are also click buttons of the gamepad cursor: { { modifier, key }, ... }
+function Engine.CursorConflicts(profile)
+	local list = {}
+	for _, cvar in ipairs(CURSOR_CLICK_CVARS) do
+		local key = GetCVarValue(cvar)
+		if type(key) == "string" and key ~= "" and key ~= "none" then
+			for _, m in ipairs(ns.MODIFIERS) do
+				if profile.modifiers[m.id] == key then
+					list[#list + 1] = { modifier = m.id, key = key }
+				end
+			end
+		end
+	end
+	return list
+end
+
+------------------------------------------------------------------------
 -- Apply
 ------------------------------------------------------------------------
 
@@ -324,13 +373,16 @@ function Engine.Apply(reason)
 
 	if not ns.db.enabled then
 		RevertModifiers()
+		RevertCursor()
 		state.status = "disabled"
 	elseif state.style ~= "Mkb" then
 		RevertModifiers()
+		RevertCursor()
 		state.status = "paused (Blizzard gamepad UI)"
 	else
 		local profile = Profiles.Active()
 		state.modifiers = ApplyModifiers(profile.modifiers)
+		state.cursor = ApplyCursor()
 		local expected = {} -- key -> binding string the client should report for it
 		for key, action in pairs(profile.bindings) do
 			if type(action) == "table" and action.type == "click" then

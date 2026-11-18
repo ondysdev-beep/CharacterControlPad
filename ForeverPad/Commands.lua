@@ -198,6 +198,19 @@ ns.RegisterCommand("apply", "re-apply the active profile", function()
 	ApplyAndReport("manual")
 end)
 
+ns.RegisterCommand("cursor", "gamepad cursor: /fpad cursor off = never switch to it (default), on = let the game switch to it", function(rest)
+	local arg = (rest or ""):lower()
+	if arg == "off" or arg == "on" then
+		ns.db.keepCursorOff = (arg == "off")
+		ApplyAndReport("cursor setting")
+		if ns.Config then
+			ns.Config.Refresh()
+		end
+	end
+	ns.Printf("Gamepad cursor: %s. Change: /fpad cursor on | off",
+		Engine.KeepCursorOff() and "kept off (windows with the mouse)" or "the game switches to it when a window opens")
+end)
+
 ------------------------------------------------------------------------
 -- /fpad profile ...
 ------------------------------------------------------------------------
