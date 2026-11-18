@@ -415,7 +415,7 @@ local function Create()
 		end
 	end)
 
-	frame.profilesButton = ns.CreateButton(frame, L.PROFILES_BUTTON, 90)
+	frame.profilesButton = ns.CreateButton(frame, L.PROFILES_BUTTON, 80)
 	frame.profilesButton:SetPoint("BOTTOMLEFT", frame, "BOTTOMLEFT", 16, 12)
 	frame.profilesButton:SetScript("OnClick", function()
 		if ns.ProfilesPanel then
@@ -431,8 +431,24 @@ local function Create()
 		end
 	end)
 
-	frame.setupButton = ns.CreateButton(frame, L.SETUP_BUTTON, 104)
-	frame.setupButton:SetPoint("LEFT", frame.modifiersButton, "RIGHT", 4, 0)
+	frame.contextButton = ns.CreateButton(frame, L.CTX_BUTTON, 72)
+	frame.contextButton:SetPoint("LEFT", frame.modifiersButton, "RIGHT", 4, 0)
+	frame.contextButton:SetScript("OnClick", function()
+		if ns.ContextPanel then
+			ns.ContextPanel.Open()
+		end
+	end)
+	frame.contextButton:SetScript("OnEnter", function(self)
+		ns.GetTooltip():SetOwner(self, "ANCHOR_TOP")
+		ns.GetTooltip():SetText(L.CTX_TITLE)
+		ns.ShowTooltip()
+	end)
+	frame.contextButton:SetScript("OnLeave", function()
+		ns.GetTooltip():Hide()
+	end)
+
+	frame.setupButton = ns.CreateButton(frame, L.SETUP_BUTTON, 98)
+	frame.setupButton:SetPoint("LEFT", frame.contextButton, "RIGHT", 4, 0)
 	frame.setupButton:SetScript("OnClick", function()
 		if ns.Wizard then
 			frame:Hide()
@@ -548,7 +564,7 @@ function Config.Refresh()
 	frame.errors:SetText(errorCount > 0 and string.format(L.ERRORS, errorCount) or "")
 	frame.compat:SetText(ns.Compat and ns.Compat.Summary() or "")
 	frame.toggle:SetText(ns.db.enabled and L.DISABLE or L.ENABLE)
-	for _, b in ipairs({ frame.toggle, frame.quickBind, frame.profilesButton, frame.modifiersButton, frame.setupButton }) do
+	for _, b in ipairs({ frame.toggle, frame.quickBind, frame.profilesButton, frame.modifiersButton, frame.contextButton, frame.setupButton }) do
 		if locked then
 			b:Disable()
 		else

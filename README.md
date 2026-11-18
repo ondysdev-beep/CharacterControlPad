@@ -6,7 +6,7 @@ ForeverPad maps controller buttons and button combos to your normal Blizzard act
 their layout and the Edit Mode stay exactly as you set them up. The keyboard and mouse keep working
 at the same time.
 
-> Status: **beta (0.9.x)**. Built for WoW: Forever 1.60.1 (interface 16001). Feedback welcome.
+> Status: **beta (0.10.x)**. Built for WoW: Forever 1.60.1 (interface 16001). Feedback welcome.
 
 ## Features
 
@@ -15,6 +15,18 @@ at the same time.
 - **Modifier layers.** Hold L1 / R1 (configurable, up to three modifiers) for 4 or 8 layers of actions,
   for example Cross, L1+Cross, R1+Cross and L1+R1+Cross. A short tap on a modifier can have its own action.
 - **Game and UI commands.** Jump, autorun, interact, targeting, map, bags, quest log and more.
+- **Context controls for windows.** While a window is open, a few buttons do what fits it, and they
+  go back to your own bindings when it closes:
+  - **Circle** closes windows.
+  - **Merchant:** Cross buys and Square sells the item under the cursor, Triangle repairs, Options
+    sells junk.
+  - **NPC dialogs and quests:** the D-pad chooses and Cross accepts, continues or completes.
+  - **Dialogs** (ready check, dungeon queue, invitations): Cross accepts, Circle declines.
+  - **Other windows:** Cross loots everything, opens all mail and learns at a trainer. At the bank,
+    Square moves the item under the cursor.
+
+  A hint line under the window shows the buttons. Each part can be switched off in the **Windows**
+  panel.
 - **Profiles.** Each character remembers its own profile. You can create, copy, rename and delete profiles,
   and start a new one empty or from a template.
 - **First-run wizard.** Pick your modifiers, then choose between an empty layout and a template.
@@ -56,6 +68,7 @@ Copy the `ForeverPad` folder to
 | `/fpad unmap L1+Cross` | remove a combo |
 | `/fpad mod shift L1` | set modifier buttons (shift / ctrl / alt) |
 | `/fpad profile ...` | profiles: use, new, template, copy, rename, delete, reset |
+| `/fpad context` | context controls for windows (`on`, `off`, `status`, `hints on\|off`, `merchant off` ...) |
 | `/fpad on` / `/fpad off` | enable / disable ForeverPad |
 | `/fpad lang en \| cs \| auto` | language |
 | `/fpad setup` | run the setup wizard again |
@@ -87,5 +100,13 @@ Tlačítka a kombinace ovladače si namapuješ na své běžné action bary. Kl�
   rozložení, nebo šablonu.
 - **Přiřazení:** v režimu **Přiřadit na barech** najeď myší na tlačítko baru a zmáčkni kombinaci na ovladači.
 - **Nastavení:** příkaz `/fpad`.
+- **Kontextové ovládání oken:**
+  - **Kolečko** zavře okno.
+  - **U obchodníka** Křížek koupí a Čtverec prodá předmět pod kurzorem, Trojúhelník opraví vše a
+    Options prodá odpad.
+  - **U NPC a questů** D-pad vybírá a Křížek potvrdí.
+  - **V potvrzovacích oknech** Křížek potvrdí a Kolečko odmítne.
+  - Vypnout se dá v panelu **Okna**.
+  - V boji je vypnuté a platí tvoje bindy.
 - **Čeština** se zapne sama, když máš zapnutý překlad WowfCZ. Ručně ji přepneš tlačítkem v okně nebo `/fpad lang cs`.
 - ForeverPad funguje v rozhraní pro myš a klávesnici. V Blizzard režimu pro ovladač se sám pozastaví.

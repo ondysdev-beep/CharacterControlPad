@@ -1,7 +1,7 @@
 # ForeverPad – Technický audit (Fáze 0)
 
 **Datum:** 2026-11-18
-**Stav:** Fáze 0–4 jsou ověřené ve hře (kapitoly 9 a 10). Fáze 5 a konfigurátor (v0.3–0.9.1) jsou hotové a otestované mimo hru (170+ testů, `npm test`). Čeká se na souhrnný test ve hře (kapitola 11).
+**Stav:** Fáze 0–4 jsou ověřené ve hře (kapitoly 9 a 10). Fáze 5, konfigurátor a kontextové ovládání oken (v0.3–0.10.0) jsou hotové a otestované mimo hru (250+ testů, `npm test`). Čeká se na souhrnný test ve hře (kapitola 11).
 
 Značení podle zadání:
 
@@ -525,7 +525,39 @@ Postranní panely se otevírají vedle okna, vždy jen jeden. V boji se zavřou 
   - přes `git archive` vytvoří `dist/ForeverPad-<verze>.zip` se složkou `ForeverPad/` (jen commitnutý obsah, bez testů a vývojových souborů).
 - **Nahrání:** CurseForge / Wago, flavor **WoW Forever**, verze hry **1.60.1**.
 - **NOT CONFIRMED (ve hře):** addon compartment a ikona `INV_Misc_Gear_01` ve Forever.
-- **Před 1.0.0:** souhrnný test ve hře (kapitoly 11.3 a 11.5–11.10 a testovací plán ze zadání, kap. 13).
+- **Před 1.0.0:** souhrnný test ve hře (kapitoly 11.3, 11.5–11.10 a 11.12 a testovací plán ze zadání, kap. 13).
+
+### 11.12 Kontextové ovládání oken (v0.10.0)
+
+Požadavek hráče: kolečko u obchodníka sesílalo kouzlo místo zavření okna; nákup a prodej ovladačem.
+
+- **Princip:** samostatná vrstva *prioritních* override bindů (`SetOverrideBinding(owner, true, …)`) na vlastním vlastníkovi `ForeverPadContextOwner`. Hráčovo rozložení (`ForeverPadBindingOwner`) se nemění; po zavření okna vrstva zmizí. Používají se jen tlačítka bez modifikátoru.
+- **Kliknutí:** přes `SecureActionButtonTemplate` (`type = "click"`, atribut `clickbutton` = Blizzard tlačítko). Stisk bindu je hardwarová událost, takže Blizzard tlačítko proběhne neposkvrněně, jako by na něj hráč klikl myší. Addon sám nevolá žádnou chráněnou funkci. Ověřeno ve zdroji: `Blizzard_FrameXML/SecureTemplates.lua` (`SECURE_ACTIONS.click`, `useOnKeyDown`).
+- **Vlastní Lua akce** (sebrat vše `LootSlot`, D-pad výběr) běží přes obyčejná tlačítka `ForeverPadContextFn*`.
+- **Boj:** vrstva se maže v `PLAYER_REGEN_DISABLED` (ještě před zámkem), obnoví se po boji. V boji platí jen hráčovy bindy. Vrstva je vypnutá i v Blizzard gamepad UI, při vypnutém ForeverPadu a v režimu rychlého přiřazení.
+- **Obnova:** každých 0,1 s se spočítá, co má platit (otevřená okna, předmět pod kurzorem); bindy se mění jen při změně.
+- **Kontrola konfliktů** v `BindingEngine` ignoruje klávesy, které drží kontextová vrstva (`Context.Owns`).
+- **Mapa oken (ověřeno ve zdroji větve `forever`, Camelot = rodina Mainline):**
+
+| Skupina | Detekce | Tlačítko → akce |
+|---|---|---|
+| Potvrzovací okna | `StaticPopup1-4` (`ButtonContainer.Button1/2`, `GameDialog.xml`), `ReadyCheckFrame`, `LFGDungeonReadyDialog`, `LFDRoleCheckPopup`, `LFGInvitePopup` | Křížek = tlačítko 1 / Yes / Enter, Kolečko = tlačítko 2 / No / Leave |
+| Kořist | `LootFrame` | Křížek = `LootSlot` všech slotů |
+| Obchodník | `MerchantFrame`; předmět `MerchantItem%dItemButton`; předmět v batohu = má `GetBagID` a rodiče s `GetBagID` (pool bez jmen) | Křížek = pravý klik (koupit / buyback), Čtverec = pravý klik (prodat), Trojúhelník = `MerchantRepairAllButton`, Options = `MerchantSellAllJunkButton` |
+| Banka | `BankFrame` (Camelot/BankFrame.xml); bankovní předmět = `GetBankTabID` + `GetContainerSlotID` | Čtverec = pravý klik (přesun) |
+| Pošta | `InboxFrame` + `OpenAllMail` | Křížek = otevřít vše |
+| Trenér | `ClassTrainerFrame` + `ClassTrainerTrainButton` | Křížek = naučit |
+| NPC a questy | `GossipFrame.GreetingPanel.ScrollBox:GetFrames()` (`buttonType` 3/4/5); `QuestFrame` panely Greeting (`titleButtonPool`), Detail (`QuestFrameAcceptButton`), Progress (`QuestFrameCompleteButton`), Reward (`QuestInfoRewardsFrame.RewardButtons` typu `choice` + `QuestFrameCompleteQuestButton`) | D-pad ↑↓ výběr (zvýraznění), Křížek = potvrdit; po výběru odměny přeskočí na Dokončit |
+| Zavírání | `GetUIPanel(left/center/right/doublewide/fullscreen)`, `UISpecialFrames`, `IsAnyBagOpen()`, `GameMenuFrame`, `WorldMapFrame`, `LootFrame`, `SettingsPanel` | Kolečko = `TOGGLEGAMEMENU` (řetězec Esc z `Blizzard_GameMenuEsc`) |
+
+- **Nastavení:** okno **Okna** v patičce (`ContextPanel.lua`), `/fpad context [on|off|status|hints on|off|<skupina> on|off]`. Uloženo v `ForeverPadDB.context` (pro celý účet).
+- **Nápověda:** řádek pod oknem, které je navrchu (např. „Křížek Koupit (předmět pod kurzorem) … Kolečko Zavřít“).
+- **NOT CONFIRMED (ve hře):**
+  - `SECURE_ACTIONS.click` projde u Blizzard tlačítek (`HasAccessConstraints` / `ScriptedInput`), hlavně u předmětů v batohu a u `LFGDungeonReadyDialog`;
+  - binding click na skrytý `SecureActionButton` reaguje na stisk (`useOnKeyDown`);
+  - `GetMouseFoci()` vrací přímo tlačítko předmětu;
+  - pořadí položek v rozhovoru odpovídá zvýraznění;
+  - `LootSlot` z addonu bere kořist bez blokace.
 
 ---
 

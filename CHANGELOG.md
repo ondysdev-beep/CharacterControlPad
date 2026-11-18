@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.10.0 - 2026-11-18
+- Context controls: while a game window is open, some buttons temporarily do what fits the window.
+  Circle closes windows. At a merchant, Cross buys and Square sells the item under the cursor,
+  Triangle repairs and Options sells junk. In NPC dialogs and quests, the D-pad chooses and Cross
+  confirms. In dialogs, Cross accepts and Circle declines. Cross also loots everything, opens all
+  mail and learns at a trainer, and Square moves items at the bank.
+- Your own bindings are not changed, combos with modifiers are never affected, and the context
+  controls are always off in combat.
+- New **Windows** panel and `/fpad context`: switch the context controls on/off as a whole, per
+  window, and the button hints shown under the window.
+
 ## 0.9.1 - 2026-11-18
 - Release packaging: author and license (MIT) in the TOC, addon category and icon, entry in the
   minimap addon compartment, LICENSE, README, `npm run package` builds the release ZIP.

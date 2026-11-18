@@ -369,8 +369,10 @@ function Engine.Apply(reason)
 		state.conflicts = {}
 		if type(GetBindingAction) == "function" then
 			for key, want in pairs(expected) do
+				-- keys temporarily held by ForeverPad's own context layer (Context.lua) are not conflicts
+				local ownLayer = ns.Context and ns.Context.Owns(key)
 				local ok, actual = pcall(GetBindingAction, key, true)
-				if ok and type(actual) == "string" and actual ~= "" and actual ~= want then
+				if not ownLayer and ok and type(actual) == "string" and actual ~= "" and actual ~= want then
 					state.conflicts[key] = actual
 				end
 			end
