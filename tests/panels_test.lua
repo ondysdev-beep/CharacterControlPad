@@ -55,7 +55,7 @@ MainActionBar = NewWidget()
 
 local ns = {}
 for _, f in ipairs({ "Core.lua", "Locale.lua", "Data.lua", "Profiles.lua", "BindingEngine.lua", "Compat.lua", "Commands.lua", "ConfigWindow.lua",
-  "ActionPicker.lua", "QuickBind.lua", "ModifierPanel.lua", "ProfilesPanel.lua", "Wizard.lua" }) do
+  "ActionPicker.lua", "QuickBind.lua", "ModifierPanel.lua", "ProfilesPanel.lua", "Wizard.lua", "CursorGuard.lua" }) do
   assert(loadfile(ROOT .. f))("ForeverPad", ns)
 end
 local core = eventFrames[1]
@@ -127,10 +127,14 @@ mp.revert.scripts.OnClick()
 ok(mp.apply.enabled == false and p.modifiers.CTRL == "PADRTRIGGER", "revert drops the staged change")
 
 ---------------- gamepad cursor ----------------
+-- Forever defaults, except a player who switched the stick/jump safety off
 cvars.GamePadCursorAutoEnable = "1" cvars.GamePadCursorLeftClick = "PADRTRIGGER" cvars.GamePadCursorRightClick = "PADRSHOULDER"
+cvars.GamePadCursorAutoDisableSticks = "0" cvars.GamePadCursorAutoDisableJump = "1"
 ns.Engine.Apply("test") ns.Config.Refresh()
 ok(tempcvars.GamePadCursorAutoEnable == "0" and C_CVar.GetCVar("GamePadCursorAutoEnable") == "0", "automatic gamepad cursor kept off by default (temp CVar only)")
-ok(db.lastApply.cursor and db.lastApply.cursor.ok, "cursor state recorded")
+ok(tempcvars.GamePadCursorAutoDisableSticks == "2", "stick input always turns the cursor off")
+ok(tempcvars.GamePadCursorAutoDisableJump == nil, "jump setting already right: left alone")
+ok(db.lastApply.cursor and db.lastApply.cursor.ok and db.lastApply.cursor.cvars.GamePadCursorAutoDisableSticks.ok, "cursor state recorded")
 ok(cf.cursorCheck.checked == true and cf.pages.settings.cursorNote.text:find("mouse"), "cursor checkbox on, explained")
 ok(not cf.compat.text:find("gamepad cursor click"), "no conflict warning while the cursor is kept off")
 cf.cursorCheck.checked = false cf.cursorCheck.scripts.OnClick(cf.cursorCheck)
@@ -140,9 +144,33 @@ ok(cf.pages.settings.cursorNote.text:find("R2"), "settings page shows the confli
 SlashCmdList.FOREVERPAD("cursor off")
 ok(db.keepCursorOff == true and tempcvars.GamePadCursorAutoEnable == "0", "/fpad cursor off")
 SlashCmdList.FOREVERPAD("off")
-ok(tempcvars.GamePadCursorAutoEnable == nil, "disabling ForeverPad restores the cursor setting")
+ok(tempcvars.GamePadCursorAutoEnable == nil and tempcvars.GamePadCursorAutoDisableSticks == nil, "disabling ForeverPad restores the cursor settings")
 SlashCmdList.FOREVERPAD("on")
-ok(tempcvars.GamePadCursorAutoEnable == "0", "enabling keeps it off again")
+ok(tempcvars.GamePadCursorAutoEnable == "0" and tempcvars.GamePadCursorAutoDisableSticks == "2", "enabling keeps it off again")
+
+-- guard hint: gamepad cursor on + mouse still for 2.5 s
+local guard = ForeverPadCursorGuard
+local now, cursorOn, mx = 100, false, 10
+GetTime = function() return now end
+GetCursorPosition = function() return mx, 20 end
+IsGamePadCursorControlEnabled = function() return cursorOn end
+ns.CursorGuard.Check()
+ok(guard.hint == false, "no hint while the gamepad cursor is off")
+cursorOn = true now = 101 ns.CursorGuard.Check()
+ok(guard.hint == false, "no hint right away")
+now = 103 ns.CursorGuard.Check()
+ok(guard.hint == true and guard.text.text:find("left stick"), "hint after 2.5 s with the cursor on and the mouse still")
+mx = 50 ns.CursorGuard.Check()
+ok(guard.hint == false, "moving the mouse hides the hint (windows used with the mouse)")
+now = 106 ns.CursorGuard.Check()
+ok(guard.hint == true, "mouse still again -> hint again")
+cursorOn = false ns.CursorGuard.Check()
+ok(guard.hint == false, "cursor off (stick or jump) -> hint gone")
+cursorOn = true now = 120 ns.CursorGuard.Check()
+SlashCmdList.FOREVERPAD("cursor on") ns.CursorGuard.Check()
+ok(guard.hint == false, "no hint when the player allows the gamepad cursor")
+SlashCmdList.FOREVERPAD("cursor off")
+GetTime = function() return 1 end
 
 ---------------- profiles panel ----------------
 ok(cf.profileButton.text == "Profile: Default", "profile button shows the active profile")

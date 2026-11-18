@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.11.2 - 2026-11-18
+- Safety net for the gamepad cursor: moving a stick or jumping always turns the game's gamepad
+  cursor off and gives the controller back to the character (temporary setting, also when the
+  player had switched it off in the game options).
+- When the gamepad cursor is on and the mouse has not moved for 2.5 seconds, a short hint at the
+  top of the screen tells you how to get back (move the left stick or jump).
+
 ## 0.11.1 - 2026-11-18
 - Fix: controls stopped working after opening the game menu or a window, and R1 / R2 combos did
   not work while a window was open. The game switched to its own gamepad cursor (the left stick

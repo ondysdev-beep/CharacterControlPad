@@ -64,9 +64,10 @@ local enUS = {
 	MODS_REVERT = "Revert",
 	CURSOR_HEADING = "Gamepad cursor",
 	CURSOR_KEEP_OFF = "Don't switch to the gamepad cursor",
-	CURSOR_KEEP_OFF_DESC = "Windows are used with the mouse. The game no longer switches the stick and R1 / R2 to its cursor when a window opens. Your game settings are not changed.",
+	CURSOR_KEEP_OFF_DESC = "Windows are used with the mouse. The game no longer switches the stick and R1 / R2 to its cursor when a window opens, and stick input or a jump always turns it off. Your game settings are not changed.",
 	CURSOR_ON_NOTE = "The game switches to its gamepad cursor when a window opens: the left stick moves the cursor.",
 	CURSOR_CONFLICT = "|cffff8800%s: modifier and also a gamepad cursor click - with the cursor on it clicks instead of switching layers.|r",
+	CURSOR_GUARD = "Gamepad cursor is on - move the left stick or jump to control your character again.",
 
 	-- compatibility
 	COMPAT_CONFLICT = "|cffff4444%s is loaded - it also binds controller buttons. Use only one of the two addons.|r",
@@ -244,9 +245,10 @@ local csCZ = {
 	MODS_REVERT = "Vrátit",
 	CURSOR_HEADING = "Kurzor ovladače",
 	CURSOR_KEEP_OFF = "Nepřepínat na kurzor ovladače",
-	CURSOR_KEEP_OFF_DESC = "Okna ovládáš myší. Hra už při otevření okna nepřepne páčku a R1 / R2 na svůj kurzor. Nastavení hry se nemění.",
+	CURSOR_KEEP_OFF_DESC = "Okna ovládáš myší. Hra už při otevření okna nepřepne páčku a R1 / R2 na svůj kurzor a pohyb páčkou nebo skok ho vždy vypne. Nastavení hry se nemění.",
 	CURSOR_ON_NOTE = "Hra při otevření okna přepne na kurzor ovladače: levá páčka pak hýbe kurzorem.",
 	CURSOR_CONFLICT = "|cffff8800%s: modifikátor a zároveň klik kurzoru ovladače - se zapnutým kurzorem kliká místo přepnutí vrstvy.|r",
+	CURSOR_GUARD = "Je zapnutý kurzor ovladače - pohni levou páčkou nebo skoč a ovladač se vrátí k postavě.",
 
 	COMPAT_CONFLICT = "|cffff4444Je načtený %s - také binduje tlačítka ovladače. Používej jen jeden z těch dvou addonů.|r",
 	COMPAT_BARS = "|cffff8800Nalezen %s - pokud nahrazuje Blizzard bary, použij 'Přiřadit na barech' a najeď na jeho tlačítka.|r",

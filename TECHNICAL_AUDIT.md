@@ -1,7 +1,7 @@
 # ForeverPad – Technický audit (Fáze 0)
 
 **Datum:** 2026-11-18
-**Stav:** Fáze 0–4 jsou ověřené ve hře (kapitoly 9 a 10). Fáze 5, konfigurátor, kontextové ovládání oken a nové okno nastavení (v0.3–0.11.1) jsou hotové a otestované mimo hru (260+ testů, `npm test`). Čeká se na souhrnný test ve hře (kapitola 11).
+**Stav:** Fáze 0–4 jsou ověřené ve hře (kapitoly 9 a 10). Fáze 5, konfigurátor, kontextové ovládání oken a nové okno nastavení (v0.3–0.11.2) jsou hotové a otestované mimo hru (260+ testů, `npm test`). Čeká se na souhrnný test ve hře (kapitola 11).
 
 Značení podle zadání:
 
@@ -598,11 +598,26 @@ Uložená data (`ForeverPad.lua`) ukázala, že bindy byly použité bez chyb a 
 - **Oprava:** `Engine.Apply` nastavuje dočasně `SetTempCVar("GamePadCursorAutoEnable", "0")`, dokud je ForeverPad aktivní. Při vypnutí ForeverPadu a v Blizzard gamepad UI se volá `RemoveTempCVar`. Nastavení hráče se do Config.wtf nezapisuje. `SetGamePadCursorControl` ForeverPad nevolá.
   - Volba `ns.db.keepCursorOff` (výchozí zapnuto): checkbox v záložce Nastavení a `/fpad cursor on|off`.
   - Při povoleném kurzoru okno upozorní, když je modifikátor zároveň klik kurzoru (`Engine.CursorConflicts`).
+- **Výchozí hodnoty Forever** (podle `wowless` `data/products/wowf/cvars.yaml` a `camelot-cvars.txt`, neověřeno ve hře):
+  - `GamePadCursorOnLogin = 1`: kurzor je zapnutý hned po přihlášení;
+  - `GamePadCursorAutoEnable = 1`;
+  - `GamePadCursorLeftClick = PADRTRIGGER`, `GamePadCursorRightClick = PADRSHOULDER`;
+  - `GamePadCursorAutoDisableSticks = 2` (0 = nikdy, 1 = páčka pohybu, 2 = pohyb i kurzor), `GamePadCursorAutoDisableJump = 1`.
+- **Vysvětlení „menu funguje jen jednou“:**
+  1. Po přihlášení je kurzor zapnutý, takže první stisk Options otevře menu přímo.
+  2. Zavření menu kurzor vypne.
+  3. Každý další stisk Options jen zapne kurzor (`TryHandleFrameworkPreEsc` stisk spotřebuje).
+  4. Pohyb páčkou kurzor zase vypne, takže se hráč k menu nedostane.
+- **Ruční přepínání kurzoru addonem nejde:** `SetGamePadCursorControl` volaný z addonu je ve Forever podle testovacích mocků jiného addonu pro Forever (`DingGuideWoWForever`, `tools/wow_mock.lua`) `ADDON_ACTION_FORBIDDEN`, s nabídkou addon vypnout. ForeverPad ho proto nevolá. Hráčův nápad „vypnout kurzor po 2–3 s nečinnosti myši“ je nahrazený záchrannou sítí přes CVary (v0.11.2):
+  - `Engine.Apply` dočasně drží `GamePadCursorAutoDisableSticks = 2` a `GamePadCursorAutoDisableJump = 1`. Pohyb páčkou nebo skok tak kurzor vypne vždy, i kdyby to hráč v nastavení vypnul. CVary, které klient nezná, se přeskočí.
+  - `CursorGuard.lua` jen čte stav (`IsGamePadCursorControlEnabled`, `GetCursorPosition`). Když je kurzor zapnutý a myš 2,5 s stojí, ukáže nahoře hlášku „pohni levou páčkou nebo skoč“. Pohyb myši hlášku skryje.
 - **Blikání prázdného slotu při držení L2:** L2 vedlo na prázdný Hlavní bar #4. Opakované „stisknutí“ při držení odpovídá Blizzard funkci „drž a sesílej“, nejde o chybu ForeverPadu.
 - **NOT CONFIRMED (ve hře):**
   - `CanAutoSetGamePadCursorControl` se řídí CVarem `GamePadCursorAutoEnable`;
   - se zapnutým kurzorem tlačítka kliku přestanou fungovat jako emulované modifikátory;
-  - dočasná hodnota `0` platí hned, bez `/reload`.
+  - dočasná hodnota `0` platí hned, bez `/reload`;
+  - `AutoDisableSticks` / `AutoDisableJump` opravdu vypnou kurzor i při `AutoEnable = 0`;
+  - `IsGamePadCursorControlEnabled` vrací skutečný stav kurzoru.
 
 ---
 

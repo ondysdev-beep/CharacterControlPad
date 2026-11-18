@@ -306,7 +306,17 @@ end
 -- ForeverPad uses as modifiers. ForeverPad is meant for "character on the controller, windows
 -- with the mouse", so by default it keeps the automatic cursor off while it is active.
 
-local CURSOR_CVAR = "GamePadCursorAutoEnable"
+-- Forever defaults (wowless data/products/wowf/cvars.yaml): AutoEnable 1, OnLogin 1, LeftClick
+-- PADRTRIGGER, RightClick PADRSHOULDER, AutoDisableSticks 2, AutoDisableJump 1. Addons may not call
+-- SetGamePadCursorControl in Forever (ADDON_ACTION_FORBIDDEN), so ForeverPad only uses CVars:
+--   AutoEnable 0         - windows and Esc no longer switch to the cursor
+--   AutoDisableSticks 2  - any stick input turns the cursor off (safety net)
+--   AutoDisableJump 1    - jumping turns it off too
+local CURSOR_CVARS = {
+	{ name = "GamePadCursorAutoEnable", value = "0" },
+	{ name = "GamePadCursorAutoDisableSticks", value = "2" },
+	{ name = "GamePadCursorAutoDisableJump", value = "1" },
+}
 local CURSOR_CLICK_CVARS = { "GamePadCursorLeftClick", "GamePadCursorRightClick" }
 
 function Engine.KeepCursorOff()
@@ -314,7 +324,9 @@ function Engine.KeepCursorOff()
 end
 
 local function RevertCursor()
-	pcall(C_CVar.RemoveTempCVar, CURSOR_CVAR)
+	for _, c in ipairs(CURSOR_CVARS) do
+		pcall(C_CVar.RemoveTempCVar, c.name)
+	end
 end
 
 local function ApplyCursor()
@@ -322,12 +334,20 @@ local function ApplyCursor()
 		RevertCursor()
 		return nil
 	end
-	local current = GetCVarValue(CURSOR_CVAR)
-	if current ~= nil and current ~= "0" then
-		pcall(C_CVar.SetTempCVar, CURSOR_CVAR, "0")
-		current = GetCVarValue(CURSOR_CVAR)
+	local result = { ok = true, cvars = {} }
+	for _, c in ipairs(CURSOR_CVARS) do
+		local current = GetCVarValue(c.name)
+		if current ~= nil then -- unknown CVar in this client: nothing to do
+			if current ~= c.value then
+				pcall(C_CVar.SetTempCVar, c.name, c.value)
+				current = GetCVarValue(c.name)
+			end
+			local ok = (current == c.value)
+			result.cvars[c.name] = { wanted = c.value, actual = Safe(current), ok = ok }
+			result.ok = result.ok and ok
+		end
 	end
-	return { wanted = "0", actual = Safe(current), ok = (current == "0" or current == nil) }
+	return result
 end
 
 -- Modifier buttons that are also click buttons of the gamepad cursor: { { modifier, key }, ... }
