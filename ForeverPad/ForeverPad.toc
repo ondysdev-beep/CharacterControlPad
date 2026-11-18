@@ -1,0 +1,21 @@
+## Interface: 16001
+## Title: ForeverPad
+## Notes: DualSense / gamepad binding layer for WoW: Forever. Keeps the original Blizzard UI and maps controller buttons and combos to its action bars.
+## Version: 0.8.0
+## SavedVariables: ForeverPadDB
+
+Core.lua
+Locale.lua
+Data.lua
+Profiles.lua
+BindingEngine.lua
+Compat.lua
+Commands.lua
+ConfigWindow.lua
+ActionPicker.lua
+QuickBind.lua
+ModifierPanel.lua
+ProfilesPanel.lua
+Wizard.lua
+Audit.lua
+InputDiagnostics.lua
