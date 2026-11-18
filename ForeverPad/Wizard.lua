@@ -17,10 +17,10 @@ ns.Wizard = Wizard
 local WIDTH, HEIGHT = 480, 300
 
 local PRESETS = {
-	{ label = L.SETUP_MODS_L1R1, mods = { SHIFT = "PADLSHOULDER", CTRL = "PADRSHOULDER", ALT = "none" } },
-	{ label = L.SETUP_MODS_L2R2, mods = { SHIFT = "PADLTRIGGER", CTRL = "PADRTRIGGER", ALT = "none" } },
-	{ label = L.SETUP_MODS_THREE, mods = { SHIFT = "PADLSHOULDER", CTRL = "PADRSHOULDER", ALT = "PADLTRIGGER" } },
-	{ label = L.SETUP_MODS_NONE, mods = { SHIFT = "none", CTRL = "none", ALT = "none" } },
+	{ labelKey = "SETUP_MODS_L1R1", mods = { SHIFT = "PADLSHOULDER", CTRL = "PADRSHOULDER", ALT = "none" } },
+	{ labelKey = "SETUP_MODS_L2R2", mods = { SHIFT = "PADLTRIGGER", CTRL = "PADRTRIGGER", ALT = "none" } },
+	{ labelKey = "SETUP_MODS_THREE", mods = { SHIFT = "PADLSHOULDER", CTRL = "PADRSHOULDER", ALT = "PADLTRIGGER" } },
+	{ labelKey = "SETUP_MODS_NONE", mods = { SHIFT = "none", CTRL = "none", ALT = "none" } },
 }
 
 local frame
@@ -46,7 +46,7 @@ local function NewPage(text)
 	local page = CreateFrame("Frame", nil, frame)
 	page:SetPoint("TOPLEFT", frame, "TOPLEFT", 16, -30)
 	page:SetPoint("BOTTOMRIGHT", frame, "BOTTOMRIGHT", -16, 44)
-	page.text = page:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
+	page.text = page:CreateFontString(nil, "OVERLAY", ns.Font"GameFontHighlight")
 	page.text:SetPoint("TOPLEFT", page, "TOPLEFT", 0, -4)
 	page.text:SetPoint("RIGHT", page, "RIGHT", 0, 0)
 	page.text:SetJustifyH("LEFT")
@@ -84,7 +84,7 @@ local function Create()
 	-- Step 1: modifiers
 	local p1 = NewPage(L.SETUP_STEP1)
 	for i, preset in ipairs(PRESETS) do
-		local b = ns.CreateButton(p1, preset.label, 300, 26)
+		local b = ns.CreateButton(p1, L[preset.labelKey], 300, 26)
 		b:SetPoint("TOP", p1, "TOP", 0, -64 - (i - 1) * 32)
 		b:SetScript("OnClick", function()
 			chosenMods = preset.mods
@@ -104,7 +104,7 @@ local function Create()
 	template:SetScript("OnClick", function()
 		Finish("template")
 	end)
-	p2.note = p2:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
+	p2.note = p2:CreateFontString(nil, "OVERLAY", ns.Font"GameFontHighlightSmall")
 	p2.note:SetPoint("TOP", template, "BOTTOM", 0, -16)
 	function p2:OnShowPage()
 		self.note:SetText(string.format(L.SETUP_REPLACES, Profiles.ActiveName()))

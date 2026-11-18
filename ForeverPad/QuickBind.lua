@@ -81,11 +81,11 @@ local function ShowOverlayTooltip(self)
 		for _, key in ipairs(keys) do
 			combos[#combos + 1] = Engine.KeyToCombo(key, profile)
 		end
-		GameTooltip:AddLine(string.format(L.QB_ASSIGNED_HERE, table.concat(combos, ", ")), 0.3, 0.8, 1)
+		ns.GetTooltip():AddLine(string.format(L.QB_ASSIGNED_HERE, table.concat(combos, ", ")), 0.3, 0.8, 1)
 	end
-	GameTooltip:AddLine(L.QB_TOOLTIP, 1, 0.82, 0)
-	GameTooltip:AddLine(L.QB_TOOLTIP_CLEAR, 0.7, 0.7, 0.7)
-	GameTooltip:Show()
+	ns.GetTooltip():AddLine(L.QB_TOOLTIP, 1, 0.82, 0)
+	ns.GetTooltip():AddLine(L.QB_TOOLTIP_CLEAR, 0.7, 0.7, 0.7)
+	ns.ShowTooltip()
 end
 
 local function GetOverlay(barIndex, n)
@@ -102,7 +102,7 @@ local function GetOverlay(barIndex, n)
 	o.hl = o:CreateTexture(nil, "HIGHLIGHT")
 	o.hl:SetAllPoints()
 	o.hl:SetColorTexture(1, 0.82, 0, 0.35)
-	o.label = o:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
+	o.label = o:CreateFontString(nil, "OVERLAY", ns.Font"GameFontHighlightSmall")
 	o.label:SetPoint("CENTER", o, "CENTER", 0, 0)
 	o.bar, o.button = barIndex, n
 	o:SetScript("OnEnter", function(self)
@@ -113,7 +113,7 @@ local function GetOverlay(barIndex, n)
 		if hovered == self then
 			hovered = nil
 		end
-		GameTooltip:Hide()
+		ns.GetTooltip():Hide()
 	end)
 	o:SetScript("OnClick", function(self, mouseButton)
 		if mouseButton == "RightButton" then
@@ -312,12 +312,12 @@ local function EnsureFrames()
 	banner = ns.CreatePanelFrame("ForeverPadQuickBindBanner", 580, 104)
 	banner:SetPoint("TOP", UIParent, "TOP", 0, -90)
 	banner.title:SetText(L.QB_TITLE)
-	banner.help = banner:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
+	banner.help = banner:CreateFontString(nil, "OVERLAY", ns.Font"GameFontHighlightSmall")
 	banner.help:SetPoint("TOPLEFT", banner, "TOPLEFT", 14, -30)
 	banner.help:SetPoint("RIGHT", banner, "RIGHT", -110, 0)
 	banner.help:SetJustifyH("LEFT")
 	banner.help:SetText(L.QB_HELP)
-	banner.result = banner:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+	banner.result = banner:CreateFontString(nil, "OVERLAY", ns.Font"GameFontNormal")
 	banner.result:SetPoint("BOTTOMLEFT", banner, "BOTTOMLEFT", 14, 14)
 	banner.result:SetPoint("RIGHT", banner, "RIGHT", -110, 0)
 	banner.result:SetJustifyH("LEFT")
@@ -383,7 +383,7 @@ function QB.Stop()
 	pcall(capture.EnableGamePadButton, capture, false)
 	capture:Hide()
 	LayoutOverlays() -- hides all overlays (active = false)
-	GameTooltip:Hide()
+	ns.GetTooltip():Hide()
 	if banner:IsShown() then
 		banner:Hide()
 	end

@@ -166,7 +166,7 @@ local function Create()
 	ns.RegisterSidePanel(frame)
 	frame.title:SetText(L.MODS_TITLE)
 
-	local help = frame:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
+	local help = frame:CreateFontString(nil, "OVERLAY", ns.Font"GameFontHighlightSmall")
 	help:SetPoint("TOPLEFT", frame, "TOPLEFT", 16, -32)
 	help:SetPoint("RIGHT", frame, "RIGHT", -16, 0)
 	help:SetJustifyH("LEFT")
@@ -174,7 +174,7 @@ local function Create()
 
 	for rowIndex, modId in ipairs(DISPLAY_ORDER) do
 		local y = -72 - (rowIndex - 1) * 32
-		local label = frame:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+		local label = frame:CreateFontString(nil, "OVERLAY", ns.Font"GameFontNormal")
 		label:SetPoint("TOPLEFT", frame, "TOPLEFT", 16, y - 4)
 		label:SetText(modId)
 		cells[modId] = {}
@@ -188,15 +188,15 @@ local function Create()
 		end
 	end
 
-	frame.layers = frame:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
+	frame.layers = frame:CreateFontString(nil, "OVERLAY", ns.Font"GameFontHighlight")
 	frame.layers:SetPoint("TOPLEFT", frame, "TOPLEFT", 16, -176)
 
-	frame.tap = frame:CreateFontString(nil, "OVERLAY", "GameFontDisableSmall")
+	frame.tap = frame:CreateFontString(nil, "OVERLAY", ns.Font"GameFontDisableSmall")
 	frame.tap:SetPoint("TOPLEFT", frame, "TOPLEFT", 16, -198)
 	frame.tap:SetPoint("RIGHT", frame, "RIGHT", -16, 0)
 	frame.tap:SetJustifyH("LEFT")
 
-	frame.affected = frame:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
+	frame.affected = frame:CreateFontString(nil, "OVERLAY", ns.Font"GameFontHighlightSmall")
 	frame.affected:SetPoint("TOPLEFT", frame, "TOPLEFT", 16, -222)
 	frame.affected:SetPoint("RIGHT", frame, "RIGHT", -16, 0)
 	frame.affected:SetJustifyH("LEFT")

@@ -57,7 +57,7 @@ function ns.CreatePanelFrame(name, width, height)
 	f:RegisterForDrag("LeftButton")
 	f:SetScript("OnDragStart", f.StartMoving)
 	f:SetScript("OnDragStop", f.StopMovingOrSizing)
-	f.title = f:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
+	f.title = f:CreateFontString(nil, "OVERLAY", ns.Font"GameFontHighlight")
 	f.title:SetPoint("TOP", f, "TOP", 0, -5)
 	f:Hide()
 	table.insert(UISpecialFrames, name) -- Esc closes it
@@ -94,26 +94,62 @@ end
 function ns.CreateButton(parent, text, width, height)
 	local b = CreateFrame("Button", nil, parent, "UIPanelButtonTemplate")
 	b:SetSize(width, height or 22)
+	if ns.HasCustomFonts() then
+		b:SetNormalFontObject(ns.Font("GameFontNormal"))
+		b:SetHighlightFontObject(ns.Font("GameFontHighlight"))
+		b:SetDisabledFontObject(ns.Font("GameFontDisable"))
+	end
 	b:SetText(text)
 	return b
 end
 
+-- Private tooltip: the shared GameTooltip is never re-fonted or otherwise touched by ForeverPad.
+function ns.GetTooltip()
+	if not ns.tooltip then
+		local ok, tt = pcall(CreateFrame, "GameTooltip", "ForeverPadTooltip", UIParent, "GameTooltipTemplate")
+		ns.tooltip = (ok and tt) or GameTooltip
+	end
+	return ns.tooltip
+end
+
+function ns.ShowTooltip()
+	local tt = ns.GetTooltip()
+	tt:Show()
+	if tt ~= GameTooltip and ns.HasCustomFonts() then
+		local n = tt:NumLines()
+		local name = tt:GetName()
+		if type(n) == "number" and type(name) == "string" then
+			for i = 1, n do
+				for _, side in ipairs({ "Left", "Right" }) do
+					local fs = _G[name .. "Text" .. side .. i]
+					if fs and fs.GetFont and fs.SetFont then
+						-- keep size, flags and colours; swap only the font file
+						local _, size, flags = fs:GetFont()
+						pcall(fs.SetFont, fs, ns.FONT_PATH, size or 12, flags or "")
+					end
+				end
+			end
+			tt:Show() -- re-layout with the new fonts
+		end
+	end
+end
+
 function ns.ShowActionTooltip(owner, slot, footer)
-	GameTooltip:SetOwner(owner, "ANCHOR_RIGHT")
+	ns.GetTooltip():SetOwner(owner, "ANCHOR_RIGHT")
 	local shown = false
 	if slot then
 		local okHas, has = pcall(HasAction, slot)
 		if okHas and has == true then
-			shown = pcall(GameTooltip.SetAction, GameTooltip, slot)
+			shown = pcall(ns.GetTooltip().SetAction, ns.GetTooltip(), slot)
 		end
 	end
 	if not shown then
-		GameTooltip:SetText(L.EMPTY_SLOT, 0.7, 0.7, 0.7)
+		ns.GetTooltip():SetText(L.EMPTY_SLOT, 0.7, 0.7, 0.7)
 	end
 	if footer then
-		GameTooltip:AddLine(footer, 0.6, 0.6, 0.6)
+		ns.GetTooltip():AddLine(footer, 0.6, 0.6, 0.6)
 	end
-	GameTooltip:Show()
+	ns.ShowTooltip()
 end
 
 ------------------------------------------------------------------------
@@ -256,7 +292,7 @@ local function CreateRow(index)
 	row:SetPoint("TOPLEFT", frame, "TOPLEFT", 16, -(ROWS_TOP + (index - 1) * ROW_HEIGHT))
 	row:EnableMouse(true)
 
-	row.label = row:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+	row.label = row:CreateFontString(nil, "OVERLAY", ns.Font"GameFontNormal")
 	row.label:SetPoint("LEFT", row, "LEFT", 0, 0)
 	row.label:SetWidth(120)
 	row.label:SetJustifyH("LEFT")
@@ -265,7 +301,7 @@ local function CreateRow(index)
 	row.icon:SetSize(20, 20)
 	row.icon:SetPoint("LEFT", row, "LEFT", 124, 0)
 
-	row.text = row:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
+	row.text = row:CreateFontString(nil, "OVERLAY", ns.Font"GameFontHighlight")
 	row.text:SetPoint("LEFT", row, "LEFT", 150, 0)
 	row.text:SetWidth(330)
 	row.text:SetJustifyH("LEFT")
@@ -287,13 +323,13 @@ local function CreateRow(index)
 		if self.slot then
 			ns.ShowActionTooltip(self, self.slot)
 		elseif self.isTap then
-			GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
-			GameTooltip:SetText(L.TAP_NOTE)
-			GameTooltip:Show()
+			ns.GetTooltip():SetOwner(self, "ANCHOR_RIGHT")
+			ns.GetTooltip():SetText(L.TAP_NOTE)
+			ns.ShowTooltip()
 		end
 	end)
 	row:SetScript("OnLeave", function()
-		GameTooltip:Hide()
+		ns.GetTooltip():Hide()
 	end)
 	return row
 end
@@ -317,10 +353,25 @@ local function Create()
 	frame:SetPoint("CENTER")
 	frame.title:SetText(L.TITLE .. "  " .. ns.VERSION)
 
-	frame.status = frame:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
+	frame.status = frame:CreateFontString(nil, "OVERLAY", ns.Font"GameFontHighlightSmall")
 	frame.status:SetPoint("TOPLEFT", frame, "TOPLEFT", 16, -36)
-	frame.status:SetPoint("RIGHT", frame, "RIGHT", -16, 0)
+	frame.status:SetPoint("RIGHT", frame, "RIGHT", -110, 0)
 	frame.status:SetJustifyH("LEFT")
+
+	-- Language switch (shows the other language; reloads the UI so every window is rebuilt)
+	frame.language = ns.CreateButton(frame, L.LANG_BUTTON, 86, 20)
+	frame.language:SetPoint("TOPRIGHT", frame, "TOPRIGHT", -16, -30)
+	frame.language:SetScript("OnClick", function()
+		ns.SetLanguageSetting(ns.language == "csCZ" and "enUS" or "csCZ", true)
+	end)
+	frame.language:SetScript("OnEnter", function(self)
+		ns.GetTooltip():SetOwner(self, "ANCHOR_RIGHT")
+		ns.GetTooltip():SetText(L.LANG_TOOLTIP)
+		ns.ShowTooltip()
+	end)
+	frame.language:SetScript("OnLeave", function()
+		ns.GetTooltip():Hide()
+	end)
 
 	for i = 1, MAX_LAYERS do
 		tabs[i] = CreateTab(i)
@@ -329,18 +380,18 @@ local function Create()
 		rows[i] = CreateRow(i)
 	end
 
-	frame.hint = frame:CreateFontString(nil, "OVERLAY", "GameFontDisableSmall")
+	frame.hint = frame:CreateFontString(nil, "OVERLAY", ns.Font"GameFontDisableSmall")
 	frame.hint:SetPoint("BOTTOMLEFT", frame, "BOTTOMLEFT", 16, 60)
 	frame.hint:SetPoint("RIGHT", frame, "RIGHT", -16, 0)
 	frame.hint:SetJustifyH("LEFT")
 	frame.hint:SetText(L.HINT)
 
-	frame.compat = frame:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
+	frame.compat = frame:CreateFontString(nil, "OVERLAY", ns.Font"GameFontHighlightSmall")
 	frame.compat:SetPoint("BOTTOMLEFT", frame, "BOTTOMLEFT", 16, 78)
 	frame.compat:SetPoint("RIGHT", frame, "RIGHT", -16, 0)
 	frame.compat:SetJustifyH("LEFT")
 
-	frame.errors = frame:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
+	frame.errors = frame:CreateFontString(nil, "OVERLAY", ns.Font"GameFontHighlightSmall")
 	frame.errors:SetPoint("BOTTOMLEFT", frame, "BOTTOMLEFT", 16, 42)
 	frame.errors:SetJustifyH("LEFT")
 

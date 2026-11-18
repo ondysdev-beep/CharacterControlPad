@@ -1,9 +1,18 @@
--- ForeverPad - UI strings
--- English for now; translations (e.g. Czech) can override these keys later.
+-- ForeverPad - localization (English + Czech)
+--
+-- Language: ForeverPadDB.language = "auto" (default) | "enUS" | "csCZ"
+--   auto -> Czech when the Czech translation addon WowfCZ is enabled, otherwise English.
+-- The default WoW font lacks Czech glyphs (WowfCZ ships its own font), so in Czech the addon's
+-- own windows use the bundled Noto Sans (SIL OFL, Fonts/OFL.txt) through private font objects.
+-- Blizzard font objects and the shared GameTooltip are never modified.
+-- Slash command help and /fpad debug output stay English.
 
 local _, ns = ...
 
-ns.L = {
+local FONT_PATH = "Interface\\AddOns\\ForeverPad\\Fonts\\NotoSans-Regular.ttf"
+ns.FONT_PATH = FONT_PATH
+
+local enUS = {
 	TITLE = "ForeverPad",
 	CHANGE = "Change",
 	NOT_ASSIGNED = "- not assigned -",
@@ -99,4 +108,252 @@ ns.L = {
 	SETUP_START_BIND = "Start quick bind",
 	SETUP_OPEN_CONFIG = "Open settings",
 	SETUP_CLOSE = "Close",
+
+	-- language
+	LANG_BUTTON = "Čeština",
+	LANG_TOOLTIP = "Switch the language to Czech (reloads the UI).",
+	LANG_SET = "Language set to %s. Type /reload to apply.",
+
+	-- engine chat messages
+	ENGINE_ACTIVE = "Profile '%s' active: %d bindings%s. Modifiers: %s%s",
+	ENGINE_ERRORS_SUFFIX = ", |cffff0000%d errors|r",
+	ENGINE_INACTIVE = "Bindings %s. Profile '%s', interface style %s.%s",
+	ENGINE_BIND_ERROR = "|cffff0000Binding %s not applied:|r %s",
+	ENGINE_CONFLICT = "|cffff0000%s is overridden by another addon:|r %s",
+	ENGINE_COMBAT_PENDING = "In combat - binding changes will be applied when combat ends.",
+	STATE_DISABLED = "disabled",
+	STATE_PAUSED = "paused (Blizzard gamepad UI)",
+	LOGIN_HINT = "  |cff888888/fpad = settings|r",
 }
+
+local csCZ = {
+	CHANGE = "Změnit",
+	NOT_ASSIGNED = "- nepřiřazeno -",
+	TAP = "(ťuknutí)",
+	EMPTY_SLOT = "prázdný slot",
+	COMMAND = "příkaz",
+	LAYER_BASE = "Bez modifikátoru",
+	STATUS_LINE = "Profil: |cffffff00%s|r    Stav: %s    Modifikátory: %s",
+	STATUS_ACTIVE = "|cff00ff00aktivní|r",
+	STATUS_PAUSED = "|cffff8800pozastaveno (Blizzard UI pro ovladač)|r",
+	STATUS_DISABLED = "|cffff4444vypnuto|r",
+	STATUS_COMBAT = "|cffff8800v boji - úpravy jsou zamčené|r",
+	MODIFIERS_NONE = "žádné",
+	ENABLE = "Zapnout",
+	DISABLE = "Vypnout",
+	HINT = "Změny platí okamžitě. Držením modifikátoru na ovladači přepneš na jeho vrstvu.",
+	ERRORS = "|cffff4444Nepodařilo se použít %d bind(ů) - podrobnosti vypíše /fpad list.|r",
+	COMBAT_LOCKED = "V boji nelze bindy měnit.",
+	PICKER_TITLE = "Přiřadit: %s",
+	TAB_BARS = "Action bary",
+	TAB_GAME = "Herní příkazy",
+	TAB_UI = "Okna rozhraní",
+	CLEAR = "Smazat",
+	CANCEL = "Zrušit",
+	HIDDEN = "(skrytý)",
+	NOT_AVAILABLE = "V tomto klientu není k dispozici.",
+	BAR_SLOT = "%s #%d - slot %d",
+	TAP_NOTE = "Tlačítko modifikátoru: spustí se jen krátkým ťuknutím.",
+	BUTTON_NOT_FOUND = "tlačítko nenalezeno",
+
+	COMPAT_CONFLICT = "|cffff4444Je načtený %s - také binduje tlačítka ovladače. Používej jen jeden z těch dvou addonů.|r",
+	COMPAT_BARS = "|cffff8800Nalezen %s - pokud nahrazuje Blizzard bary, použij 'Přiřadit na barech' a najeď na jeho tlačítka.|r",
+
+	QB_BUTTON = "Přiřadit na barech",
+	QB_TITLE = "ForeverPad - rychlé přiřazení",
+	QB_HELP = "Najeď myší na akční tlačítko (Blizzard bary nebo jiný bar addon) a zmáčkni tlačítko nebo kombinaci na ovladači.\nPravé tlačítko myši na Blizzard tlačítku smaže jeho kombinace. Esc nebo Hotovo režim ukončí.",
+	QB_DONE = "Hotovo",
+	QB_HOVER_FIRST = "|cffff8800Nejdřív najeď myší na akční tlačítko.|r",
+	QB_MOVED = "  (předtím: %s)",
+	QB_CLEARED = "Odebráno z %s: %s",
+	QB_NOTHING = "Na %s není nic přiřazeno.",
+	QB_TOOLTIP = "Zmáčkni tlačítko nebo kombinaci na ovladači a přiřadí se sem.",
+	QB_TOOLTIP_CLEAR = "Pravé tlačítko myši: odebrat z tohoto tlačítka všechny kombinace.",
+	QB_ASSIGNED_HERE = "Přiřazeno: %s",
+	QB_MOD_ON_MOD = "|cffff8800Modifikátor nejde kombinovat s jiným modifikátorem.|r",
+
+	MODS_BUTTON = "Modifikátory",
+	MODS_TITLE = "Tlačítka modifikátorů",
+	MODS_HELP = "Držením modifikátoru přepneš ovladač na jinou vrstvu akcí.\nKaždé tlačítko může být jen jeden modifikátor.",
+	MODS_LAYERS = "Vrstvy: |cffffff00%d|r",
+	MODS_TAP = "Modifikátor ťuknutý kratší dobu než %s ms spustí svou vlastní akci (ťuknutí).",
+	MODS_REMOVED = "|cffff8800Na tyto bindy už ovladač nedosáhne, budou odstraněny:|r %s",
+	MODS_NOTHING_REMOVED = "Žádný existující bind se nezmění.",
+	APPLY = "Použít",
+
+	PROFILES_BUTTON = "Profily",
+	PROFILES_TITLE = "Profily",
+	PROFILES_ACTIVE = "Tato postava používá: |cffffff00%s|r",
+	PROFILES_LIST = "Kliknutím profil přiřadíš této postavě:",
+	PROFILES_USED_BY = "%s  |cff888888(%d post.)|r",
+	PROFILES_NAME = "Název nového / přejmenovaného profilu:",
+	PROFILES_NEW_EMPTY = "Nový prázdný",
+	PROFILES_NEW_TEMPLATE = "Nový ze šablony",
+	PROFILES_COPY = "Kopírovat aktivní",
+	PROFILES_RENAME = "Přejmenovat aktivní",
+	PROFILES_RESET = "Resetovat aktivní",
+	PROFILES_DELETE = "Smazat aktivní",
+	PROFILES_RESET_EMPTY = "Smazat všechny bindy",
+	PROFILES_CONFIRM = "Klikni znovu pro potvrzení",
+	PROFILES_NEED_NAME = "|cffff8800Nejdřív napiš název.|r",
+	PROFILES_DONE = "|cff00ff00Hotovo.|r",
+	PROFILES_MORE = "... a dalších %d (/fpad profile use <název>)",
+
+	SETUP_BUTTON = "Průvodce",
+	SETUP_TITLE = "ForeverPad - první nastavení",
+	SETUP_SKIP = "Přeskočit",
+	SETUP_STEP1 = "Krok 1 ze 2: která tlačítka mají být modifikátory?\nDržením modifikátoru přepneš na jinou vrstvu akcí (L1+Křížek, R1+Křížek ...).",
+	SETUP_MODS_L1R1 = "L1 + R1  (doporučeno)",
+	SETUP_MODS_THREE = "L1 + R1 + L2  (8 vrstev)",
+	SETUP_MODS_NONE = "Bez modifikátorů",
+	SETUP_STEP2 = "Krok 2 ze 2: jak chceš začít?",
+	SETUP_EMPTY = "Prázdné - všechno si přiřadím sám",
+	SETUP_TEMPLATE = "Šablona - začít s hotovým rozložením",
+	SETUP_REPLACES = "|cff888888Nastaví profil '%s' pro tuto postavu.|r",
+	SETUP_DONE = "Hotovo. Teď přiřaď akce: najeď myší na tlačítko action baru a zmáčkni kombinaci na ovladači.",
+	SETUP_START_BIND = "Spustit rychlé přiřazení",
+	SETUP_OPEN_CONFIG = "Otevřít nastavení",
+	SETUP_CLOSE = "Zavřít",
+
+	LANG_BUTTON = "English",
+	LANG_TOOLTIP = "Přepnout jazyk na angličtinu (znovu načte rozhraní).",
+	LANG_SET = "Jazyk nastaven na %s. Pro použití napiš /reload.",
+
+	ENGINE_ACTIVE = "Profil '%s' aktivní: %d bindů%s. Modifikátory: %s%s",
+	ENGINE_ERRORS_SUFFIX = ", |cffff0000%d chyb|r",
+	ENGINE_INACTIVE = "Bindy %s. Profil '%s', režim rozhraní %s.%s",
+	ENGINE_BIND_ERROR = "|cffff0000Bind %s nebyl použit:|r %s",
+	ENGINE_CONFLICT = "|cffff0000%s přebil jiný addon:|r %s",
+	ENGINE_COMBAT_PENDING = "V boji - změny bindů se použijí po skončení boje.",
+	STATE_DISABLED = "vypnuté",
+	STATE_PAUSED = "pozastavené (Blizzard UI pro ovladač)",
+	LOGIN_HINT = "  |cff888888/fpad = nastavení|r",
+
+	-- data labels (Data.lua), applied by ApplyDataLocale
+	BTN_CROSS = "Křížek", BTN_CIRCLE = "Kolečko", BTN_SQUARE = "Čtverec", BTN_TRIANGLE = "Trojúhelník",
+	BTN_DPAD_UP = "D-pad nahoru", BTN_DPAD_DOWN = "D-pad dolů", BTN_DPAD_LEFT = "D-pad vlevo", BTN_DPAD_RIGHT = "D-pad vpravo",
+	BAR_1 = "Hlavní bar", BAR_2 = "Spodní levý bar", BAR_3 = "Spodní pravý bar",
+	BAR_4 = "Pravý bar 1", BAR_5 = "Pravý bar 2", BAR_6 = "Bar 6", BAR_7 = "Bar 7", BAR_8 = "Bar 8",
+	CMD_JUMP = "Skok", CMD_TOGGLEAUTORUN = "Automatický běh", CMD_INTERACTTARGET = "Interakce",
+	CMD_TARGETNEARESTENEMY = "Další nepřítel", CMD_TARGETPREVIOUSENEMY = "Předchozí nepřítel",
+	CMD_TARGETNEARESTFRIEND = "Další spojenec", CMD_TARGETSELF = "Zaměřit sebe", CMD_ASSISTTARGET = "Asistovat cíli",
+	CMD_SITORSTAND = "Sednout / vstát", CMD_TOGGLEGAMEMENU = "Herní menu", CMD_TOGGLEWORLDMAP = "Mapa světa",
+	CMD_OPENALLBAGS = "Batohy", CMD_TOGGLEQUESTLOG = "Deník úkolů", CMD_TOGGLECHARACTER0 = "Postava",
+	CMD_TOGGLESPELLBOOK = "Kniha kouzel", CMD_TOGGLESOCIAL = "Přátelé",
+}
+
+ns.LOCALES = { enUS = enUS, csCZ = csCZ }
+ns.LANGUAGE_NAMES = { enUS = "English", csCZ = "Čeština" }
+
+local current = enUS
+ns.language = "enUS"
+
+-- L.KEY -> current language, English fallback, then the key itself.
+ns.L = setmetatable({}, {
+	__index = function(_, key)
+		return current[key] or enUS[key] or key
+	end,
+})
+
+------------------------------------------------------------------------
+-- Fonts
+------------------------------------------------------------------------
+
+local FONT_BASES = {
+	"GameFontNormal", "GameFontHighlight", "GameFontDisable",
+	"GameFontNormalSmall", "GameFontHighlightSmall", "GameFontDisableSmall", "ChatFontNormal",
+}
+local customFonts = {}
+
+-- Font object name to use for the addon's own font strings ("GameFontNormal" -> private copy in Czech).
+function ns.Font(base)
+	return customFonts[base] or base
+end
+
+function ns.HasCustomFonts()
+	return next(customFonts) ~= nil
+end
+
+local function CreateCustomFonts()
+	if type(CreateFont) ~= "function" then
+		return
+	end
+	for _, base in ipairs(FONT_BASES) do
+		local blizzard = _G[base]
+		if type(blizzard) == "table" and type(blizzard.GetFont) == "function" then
+			local name = "ForeverPad_" .. base
+			local ok, created = pcall(function()
+				local f = CreateFont(name)
+				f:CopyFontObject(blizzard)
+				local _, size, flags = blizzard:GetFont()
+				return f:SetFont(FONT_PATH, size or 12, flags or "")
+			end)
+			-- SetFont returns false when the file cannot be loaded: keep the Blizzard font then.
+			if ok and created ~= false then
+				customFonts[base] = name
+			end
+		end
+	end
+end
+
+------------------------------------------------------------------------
+-- Language selection
+------------------------------------------------------------------------
+
+local function CzechAddonEnabled()
+	local fn = C_AddOns and C_AddOns.GetAddOnEnableState
+	if type(fn) ~= "function" then
+		return false
+	end
+	local ok, state = pcall(fn, "WowfCZ", UnitName and UnitName("player") or nil)
+	return ok and type(state) == "number" and state > 0
+end
+
+function ns.ResolveLanguage()
+	local setting = ns.db and ns.db.language or "auto"
+	if ns.LOCALES[setting] then
+		return setting
+	end
+	return CzechAddonEnabled() and "csCZ" or "enUS"
+end
+
+local function ApplyDataLocale()
+	if current == enUS then
+		return
+	end
+	for _, b in ipairs(ns.BUTTONS or {}) do
+		b.label = current["BTN_" .. b.id] or b.label
+	end
+	for i, bar in ipairs(ns.BARS or {}) do
+		bar.label = current["BAR_" .. i] or bar.label
+	end
+	for _, c in ipairs(ns.COMMANDS or {}) do
+		c.label = current["CMD_" .. c.command] or c.label
+		if ns.commandLabel then
+			ns.commandLabel[c.command] = c.label
+		end
+	end
+end
+
+-- Called once from Core at ADDON_LOADED (SavedVariables available, no UI built yet).
+function ns.InitLocale()
+	local lang = ns.ResolveLanguage()
+	ns.language = lang
+	current = ns.LOCALES[lang] or enUS
+	if lang ~= "enUS" then
+		CreateCustomFonts()
+	end
+	ApplyDataLocale()
+end
+
+function ns.SetLanguageSetting(setting, reload)
+	ns.db.language = setting
+	local name = ns.LANGUAGE_NAMES[setting] or "auto"
+	if reload then
+		local fn = (C_UI and C_UI.Reload) or ReloadUI
+		if type(fn) == "function" and pcall(fn) then
+			return
+		end
+	end
+	ns.Printf(ns.L.LANG_SET, name)
+end

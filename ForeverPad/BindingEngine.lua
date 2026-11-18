@@ -16,6 +16,7 @@ local _, ns = ...
 
 local Safe = ns.Safe
 local Profiles = ns.Profiles
+local L = ns.L
 
 local Engine = {}
 ns.Engine = Engine
@@ -303,7 +304,7 @@ end
 function Engine.Apply(reason)
 	if InCombatLockdown() then
 		if not pending then
-			ns.Print("In combat - binding changes will be applied when combat ends.")
+			ns.Print(L.ENGINE_COMBAT_PENDING)
 		end
 		pending = true
 		return false
@@ -388,7 +389,7 @@ function Engine.PrintState(suffix)
 		return
 	end
 	if s.status ~= "active" then
-		ns.Printf("Bindings %s. Profile '%s', interface style %s.%s", s.status, s.profile, s.style, suffix or "")
+		ns.Printf(L.ENGINE_INACTIVE, s.status == "disabled" and L.STATE_DISABLED or L.STATE_PAUSED, s.profile, s.style, suffix or "")
 		return
 	end
 	local profile = Profiles.Active()
@@ -405,15 +406,15 @@ function Engine.PrintState(suffix)
 	local errorCount = 0
 	for key, err in pairs(s.errors) do
 		errorCount = errorCount + 1
-		ns.Printf("|cffff0000Binding %s not applied:|r %s", Engine.KeyToCombo(key, profile), tostring(err))
+		ns.Printf(L.ENGINE_BIND_ERROR, Engine.KeyToCombo(key, profile), tostring(err))
 	end
 	for key, other in pairs(s.conflicts or {}) do
 		errorCount = errorCount + 1
-		ns.Printf("|cffff0000%s is overridden by another addon:|r %s", Engine.KeyToCombo(key, profile), tostring(other))
+		ns.Printf(L.ENGINE_CONFLICT, Engine.KeyToCombo(key, profile), tostring(other))
 	end
-	ns.Printf("Profile '%s' active: %d bindings%s. Modifiers: %s%s",
-		s.profile, s.bound, errorCount > 0 and string.format(", |cffff0000%d errors|r", errorCount) or "",
-		#modText > 0 and table.concat(modText, ", ") or "none", suffix or "")
+	ns.Printf(L.ENGINE_ACTIVE,
+		s.profile, s.bound, errorCount > 0 and string.format(L.ENGINE_ERRORS_SUFFIX, errorCount) or "",
+		#modText > 0 and table.concat(modText, ", ") or L.MODIFIERS_NONE, suffix or "")
 end
 
 ------------------------------------------------------------------------
@@ -426,7 +427,7 @@ ns.On("PLAYER_LOGIN", function()
 		ns.db.enabled = true
 	end
 	Engine.Apply("login")
-	Engine.PrintState("  |cff888888/fpad = settings|r")
+	Engine.PrintState(L.LOGIN_HINT)
 end)
 
 ns.On("PLAYER_REGEN_ENABLED", function()

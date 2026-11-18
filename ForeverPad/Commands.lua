@@ -244,3 +244,19 @@ ns.RegisterCommand("profile", PROFILE_USAGE, function(rest)
 	ns.Printf("Done. Active profile: |cffffff00%s|r", Profiles.ActiveName())
 	ApplyAndReport("profile " .. sub)
 end)
+
+------------------------------------------------------------------------
+-- /fpad lang
+------------------------------------------------------------------------
+
+local LANGUAGE_ALIASES = { en = "enUS", english = "enUS", cs = "csCZ", cz = "csCZ", czech = "csCZ", auto = "auto" }
+
+ns.RegisterCommand("lang", "language of the windows: /fpad lang en | cs | auto (auto = Czech when WowfCZ is enabled)", function(rest)
+	local setting = LANGUAGE_ALIASES[(rest or ""):lower()]
+	if not setting then
+		ns.Printf("Language: %s (setting: %s). Change: /fpad lang en | cs | auto",
+			ns.LANGUAGE_NAMES[ns.language] or ns.language, tostring(ns.db.language or "auto"))
+		return
+	end
+	ns.SetLanguageSetting(setting, false)
+end)

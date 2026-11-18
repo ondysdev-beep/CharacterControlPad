@@ -175,10 +175,10 @@ local function Create()
 	frame.title:SetText(L.PROFILES_TITLE)
 	frame:HookScript("OnHide", ResetConfirm)
 
-	frame.active = frame:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
+	frame.active = frame:CreateFontString(nil, "OVERLAY", ns.Font"GameFontHighlight")
 	frame.active:SetPoint("TOPLEFT", frame, "TOPLEFT", 16, -32)
 
-	local listLabel = frame:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+	local listLabel = frame:CreateFontString(nil, "OVERLAY", ns.Font"GameFontNormalSmall")
 	listLabel:SetPoint("TOPLEFT", frame, "TOPLEFT", 16, -54)
 	listLabel:SetText(L.PROFILES_LIST)
 
@@ -196,10 +196,10 @@ local function Create()
 		listButtons[i] = b
 	end
 
-	frame.more = frame:CreateFontString(nil, "OVERLAY", "GameFontDisableSmall")
+	frame.more = frame:CreateFontString(nil, "OVERLAY", ns.Font"GameFontDisableSmall")
 	frame.more:SetPoint("TOPLEFT", frame, "TOPLEFT", 16, -312)
 
-	local nameLabel = frame:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+	local nameLabel = frame:CreateFontString(nil, "OVERLAY", ns.Font"GameFontNormalSmall")
 	nameLabel:SetPoint("TOPLEFT", frame, "TOPLEFT", 16, -330)
 	nameLabel:SetText(L.PROFILES_NAME)
 
@@ -207,6 +207,9 @@ local function Create()
 	frame.nameBox:SetSize(WIDTH - 40, 20)
 	frame.nameBox:SetPoint("TOPLEFT", frame, "TOPLEFT", 22, -346)
 	frame.nameBox:SetAutoFocus(false)
+	if ns.HasCustomFonts() then
+		frame.nameBox:SetFontObject(ns.Font("ChatFontNormal"))
+	end
 	frame.nameBox:SetMaxLetters(32)
 	frame.nameBox:SetScript("OnEscapePressed", function(self)
 		self:ClearFocus()
@@ -227,7 +230,7 @@ local function Create()
 		actionButtons[#actionButtons + 1] = b
 	end
 
-	frame.message = frame:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
+	frame.message = frame:CreateFontString(nil, "OVERLAY", ns.Font"GameFontHighlightSmall")
 	frame.message:SetPoint("BOTTOMLEFT", frame, "BOTTOMLEFT", 16, 14)
 	frame.message:SetPoint("RIGHT", frame, "RIGHT", -16, 0)
 	frame.message:SetJustifyH("LEFT")

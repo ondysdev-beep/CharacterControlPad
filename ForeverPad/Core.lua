@@ -5,7 +5,7 @@
 
 local ADDON_NAME, ns = ...
 
-ns.VERSION = "0.8.0"
+ns.VERSION = "0.9.0"
 
 local PREFIX = "|cff33ccffForeverPad|r"
 
@@ -175,5 +175,8 @@ ns.On("ADDON_LOADED", function(_, name)
 	-- Drop diagnostic data left by older builds (or a forgotten debug session from an old version).
 	if not ns.db.debug then
 		ns.ClearDebugData()
+	end
+	if ns.InitLocale then
+		ns.InitLocale() -- before any window or chat message is produced
 	end
 end)

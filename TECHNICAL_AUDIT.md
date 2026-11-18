@@ -497,6 +497,23 @@ Postranní panely se otevírají vedle okna, vždy jen jeden. V boji se zavřou 
   - jestli tlačítka Forever verzí Bartender4 / Dominos / ElvUI reagují na `CLICK …:LeftButton` binding (u LibActionButton s `ActionButtonUseKeyDown = 1` může být potřeba jiný virtuální button);
   - jestli `GetMouseFoci` ve Forever existuje (je tu i záloha na `GetMouseFocus`).
 
+### 11.10 Jazyk: angličtina + čeština (v0.9.0)
+
+- **Rozhodnutí uživatele:** angličtina výchozí, čeština volitelná.
+- **Volba jazyka** (`ForeverPadDB.language`):
+  - `auto` (výchozí) = čeština, když je pro postavu zapnutý český překladový addon **WowfCZ** (`C_AddOns.GetAddOnEnableState`), jinak angličtina;
+  - ručně tlačítkem v pravém horním rohu okna (přepne a znovu načte UI) nebo `/fpad lang en | cs | auto`.
+- **Písmo:**
+  - WowfCZ přibaluje vlastní `FRIZQT__.ttf`, takže výchozí písmo hry české znaky nejspíš nemá;
+  - ForeverPad proto přibaluje **Noto Sans Regular** (SIL OFL 1.1, `Fonts/OFL.txt`, 621 kB) a v češtině ho používá přes vlastní font objekty (`ForeverPad_GameFont…`), jen ve svých oknech;
+  - Blizzard font objekty ani sdílený `GameTooltip` se nemění; ForeverPad má vlastní tooltip `ForeverPadTooltip`;
+  - když se písmo nenačte (`SetFont` vrátí false), zůstane písmo hry.
+- **Přeloženo:** celé UI, názvy tlačítek DualSense, barů a příkazů a hlášky enginu v chatu. Slash nápověda a `/fpad debug` zůstávají anglicky. Vstup ve slash příkazech funguje dál anglicky (`Cross`, `x` …).
+- **Ověřeno mimo hru:** 17 testů jazyka. Všechny sady dohromady mají 170 testů (`npm test`).
+- **NOT CONFIRMED (ve hře):**
+  - jak Noto Sans vypadá a jestli velikosti sedí;
+  - jestli české znaky v **chatu** (hlášky enginu) zobrazí chatové písmo hry.
+
 ---
 
 ## 12. Zdroje

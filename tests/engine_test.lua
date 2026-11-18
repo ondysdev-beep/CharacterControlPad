@@ -29,7 +29,7 @@ ActionButton1 = { action = 1 }
 
 local ns = {}
 local function load(file) local chunk = assert(loadfile(ROOT .. file)); chunk("ForeverPad", ns) end
-for _, f in ipairs({ "Core.lua", "Data.lua", "Profiles.lua", "BindingEngine.lua", "Commands.lua" }) do load(f) end
+for _, f in ipairs({ "Core.lua", "Locale.lua", "Data.lua", "Profiles.lua", "BindingEngine.lua", "Commands.lua" }) do load(f) end
 
 -- simulate ADDON_LOADED + PLAYER_LOGIN through the event frame
 local function fire(e, ...) frames[1].OnEvent(frames[1], e, ...) end
