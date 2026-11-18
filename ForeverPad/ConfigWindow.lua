@@ -582,3 +582,8 @@ ns.On("ACTIONBAR_PAGE_CHANGED", Config.Refresh)
 ns.On("UPDATE_BONUS_ACTIONBAR", Config.Refresh)
 
 ns.RegisterCommand("config", "open the configuration window (same as /fpad)", Config.Toggle)
+
+-- Entry in the addon compartment menu next to the minimap (## AddonCompartmentFunc in the TOC).
+function ForeverPad_OnAddonCompartmentClick()
+	Config.Toggle()
+end

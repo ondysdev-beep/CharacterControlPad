@@ -97,4 +97,11 @@ printed = {}
 SlashCmdList.FOREVERPAD("listen")
 ok(printedHas("/fpad map") and not db.debug, "/fpad listen is no longer a top-level command (shows help)")
 
+-- addon compartment entry (TOC AddonCompartmentFunc)
+ok(type(ForeverPad_OnAddonCompartmentClick) == "function", "compartment function exported")
+ForeverPad_OnAddonCompartmentClick()
+ok(ForeverPadConfigFrame and ForeverPadConfigFrame.shown, "compartment click opens settings")
+ForeverPad_OnAddonCompartmentClick()
+ok(not ForeverPadConfigFrame.shown, "second click closes settings")
+
 io.write("DEBUG CLEANUP TESTS PASSED: " .. passed .. "\n")

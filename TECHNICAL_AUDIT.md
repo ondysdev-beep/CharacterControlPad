@@ -1,7 +1,7 @@
 # ForeverPad – Technický audit (Fáze 0)
 
 **Datum:** 2026-11-18
-**Stav:** Fáze 0–4 jsou ověřené ve hře (kapitoly 9 a 10). Fáze 5, Binding Engine v0.3.0, je implementovaná a otestovaná mimo hru. Čeká na test ve hře (kapitola 11).
+**Stav:** Fáze 0–4 jsou ověřené ve hře (kapitoly 9 a 10). Fáze 5 a konfigurátor (v0.3–0.9.1) jsou hotové a otestované mimo hru (170+ testů, `npm test`). Čeká se na souhrnný test ve hře (kapitola 11).
 
 Značení podle zadání:
 
@@ -513,6 +513,19 @@ Postranní panely se otevírají vedle okna, vždy jen jeden. V boji se zavřou 
 - **NOT CONFIRMED (ve hře):**
   - jak Noto Sans vypadá a jestli velikosti sedí;
   - jestli české znaky v **chatu** (hlášky enginu) zobrazí chatové písmo hry.
+
+### 11.11 Balíček k vydání (v0.9.1)
+
+- **Autor:** Zap Bee. **Licence:** MIT (`LICENSE`, kopie `ForeverPad/LICENSE.txt`). Písmo Noto Sans má vlastní licenci SIL OFL 1.1 (`ForeverPad/Fonts/OFL.txt`).
+- **TOC:** `Author`, `Category: Action Bars`, `IconTexture`, `X-License` a `AddonCompartmentFunc` (položka v addon menu u minimapy otevře okno).
+- **Dokumenty:** `README.md` pro hráče (EN + CZ) a `CHANGELOG.md`.
+- **`npm run package`:**
+  - zkontroluje, že verze v TOC a v `Core.lua` je stejná a všechny soubory z TOC existují;
+  - ověří čistý pracovní strom a spustí `npm test`;
+  - přes `git archive` vytvoří `dist/ForeverPad-<verze>.zip` se složkou `ForeverPad/` (jen commitnutý obsah, bez testů a vývojových souborů).
+- **Nahrání:** CurseForge / Wago, flavor **WoW Forever**, verze hry **1.60.1**.
+- **NOT CONFIRMED (ve hře):** addon compartment a ikona `INV_Misc_Gear_01` ve Forever.
+- **Před 1.0.0:** souhrnný test ve hře (kapitoly 11.3 a 11.5–11.10 a testovací plán ze zadání, kap. 13).
 
 ---
 

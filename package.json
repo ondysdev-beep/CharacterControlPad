@@ -3,10 +3,13 @@
   "private": true,
   "description": "Offline checks for the ForeverPad WoW: Forever addon (not part of the addon itself).",
   "scripts": {
-    "test": "node tests/run-all.js"
+    "test": "node tests/run-all.js",
+    "package": "node tools/package.js"
   },
   "devDependencies": {
     "fengari": "0.1.4",
     "luaparse": "0.3.1"
-  }
+  },
+  "license": "MIT",
+  "author": "Zap Bee"
 }
