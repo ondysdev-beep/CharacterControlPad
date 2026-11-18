@@ -1,4 +1,5 @@
 -- ForeverPad - modifier panel
+-- Part of the Settings page of the settings window (Panel.Build).
 -- Choose which controller buttons act as SHIFT / CTRL / ALT (emulated by the client through
 -- GamePadEmulate* CVars, applied as temporary CVars by the engine). Changes are staged and
 -- only applied with [Apply]; bindings that would become unreachable are listed first and
@@ -14,7 +15,7 @@ local Profiles = ns.Profiles
 local Panel = {}
 ns.ModifierPanel = Panel
 
-local WIDTH, HEIGHT = 540, 340
+local WIDTH = 520
 local CANDIDATES = { "none", "PADLSHOULDER", "PADRSHOULDER", "PADLTRIGGER", "PADRTRIGGER", "PADLSTICK", "PADRSTICK" }
 local DISPLAY_ORDER = { "SHIFT", "CTRL", "ALT" }
 local MAX_LISTED = 8
@@ -115,10 +116,22 @@ function Panel.Refresh()
 		frame.affected:SetText(string.format(L.MODS_REMOVED, table.concat(combos, ", ")))
 	end
 
-	if IsDirty(profile) and not InCombatLockdown() then
+	local locked = InCombatLockdown()
+	if IsDirty(profile) and not locked then
 		frame.apply:Enable()
+		frame.revert:Enable()
 	else
 		frame.apply:Disable()
+		frame.revert:Disable()
+	end
+	for _, row in pairs(cells) do
+		for _, cell in pairs(row) do
+			if locked then
+				cell:Disable()
+			else
+				cell:Enable()
+			end
+		end
 	end
 end
 
@@ -158,29 +171,26 @@ local function Apply()
 end
 
 ------------------------------------------------------------------------
--- Construction
+-- Construction (embedded in the Settings page of the settings window)
 ------------------------------------------------------------------------
 
-local function Create()
-	frame = ns.CreatePanelFrame("ForeverPadModifierPanel", WIDTH, HEIGHT)
-	ns.RegisterSidePanel(frame)
-	frame.title:SetText(L.MODS_TITLE)
+function Panel.Build(parent)
+	frame = CreateFrame("Frame", "ForeverPadModifierPanel", parent)
+	frame:SetAllPoints(parent)
 
-	local help = frame:CreateFontString(nil, "OVERLAY", ns.Font"GameFontHighlightSmall")
-	help:SetPoint("TOPLEFT", frame, "TOPLEFT", 16, -32)
-	help:SetPoint("RIGHT", frame, "RIGHT", -16, 0)
-	help:SetJustifyH("LEFT")
+	ns.CreateHeading(frame, L.MODS_TITLE, 0, 0)
+	local help = ns.CreateText(frame, "GameFontHighlightSmall", 0, -26, WIDTH)
 	help:SetText(L.MODS_HELP)
 
 	for rowIndex, modId in ipairs(DISPLAY_ORDER) do
-		local y = -72 - (rowIndex - 1) * 32
+		local y = -66 - (rowIndex - 1) * 32
 		local label = frame:CreateFontString(nil, "OVERLAY", ns.Font"GameFontNormal")
-		label:SetPoint("TOPLEFT", frame, "TOPLEFT", 16, y - 4)
+		label:SetPoint("TOPLEFT", frame, "TOPLEFT", 0, y - 4)
 		label:SetText(modId)
 		cells[modId] = {}
 		for i, key in ipairs(CANDIDATES) do
 			local b = ns.CreateButton(frame, CandidateLabel(key), 62, 24)
-			b:SetPoint("TOPLEFT", frame, "TOPLEFT", 70 + (i - 1) * 64, y)
+			b:SetPoint("TOPLEFT", frame, "TOPLEFT", 56 + (i - 1) * 64, y)
 			b:SetScript("OnClick", function()
 				Choose(modId, key)
 			end)
@@ -188,37 +198,26 @@ local function Create()
 		end
 	end
 
-	frame.layers = frame:CreateFontString(nil, "OVERLAY", ns.Font"GameFontHighlight")
-	frame.layers:SetPoint("TOPLEFT", frame, "TOPLEFT", 16, -176)
+	frame.layers = ns.CreateText(frame, "GameFontHighlight", 0, -170, WIDTH)
+	frame.tap = ns.CreateText(frame, "GameFontDisableSmall", 0, -192, WIDTH)
+	frame.affected = ns.CreateText(frame, "GameFontHighlightSmall", 0, -216, WIDTH)
 
-	frame.tap = frame:CreateFontString(nil, "OVERLAY", ns.Font"GameFontDisableSmall")
-	frame.tap:SetPoint("TOPLEFT", frame, "TOPLEFT", 16, -198)
-	frame.tap:SetPoint("RIGHT", frame, "RIGHT", -16, 0)
-	frame.tap:SetJustifyH("LEFT")
-
-	frame.affected = frame:CreateFontString(nil, "OVERLAY", ns.Font"GameFontHighlightSmall")
-	frame.affected:SetPoint("TOPLEFT", frame, "TOPLEFT", 16, -222)
-	frame.affected:SetPoint("RIGHT", frame, "RIGHT", -16, 0)
-	frame.affected:SetJustifyH("LEFT")
-
-	frame.apply = ns.CreateButton(frame, L.APPLY, 100)
-	frame.apply:SetPoint("BOTTOMLEFT", frame, "BOTTOMLEFT", 16, 14)
+	frame.apply = ns.CreateButton(frame, L.APPLY, 120, 24)
+	frame.apply:SetPoint("TOPLEFT", frame, "TOPLEFT", 0, -290)
 	frame.apply:SetScript("OnClick", Apply)
 
-	local cancel = ns.CreateButton(frame, L.CANCEL, 100)
-	cancel:SetPoint("BOTTOMRIGHT", frame, "BOTTOMRIGHT", -16, 14)
-	cancel:SetScript("OnClick", function()
-		frame:Hide()
+	frame.revert = ns.CreateButton(frame, L.MODS_REVERT, 120, 24)
+	frame.revert:SetPoint("LEFT", frame.apply, "RIGHT", 8, 0)
+	frame.revert:SetScript("OnClick", function()
+		Panel.Reset()
 	end)
+	return frame
 end
 
-function Panel.Open()
-	if InCombatLockdown() then
-		ns.Print(L.COMBAT_LOCKED)
-		return
-	end
+-- Staged choice = the profile's current modifiers (when the page opens, or "Revert").
+function Panel.Reset()
 	if not frame then
-		Create()
+		return
 	end
 	local profile = Profiles.Active()
 	for _, m in ipairs(ns.MODIFIERS) do
@@ -226,6 +225,11 @@ function Panel.Open()
 	end
 	local okTap, tap = pcall(C_CVar.GetCVar, "GamePadEmulateTapWindowMs")
 	frame.tap:SetText(string.format(L.MODS_TAP, okTap and tostring(tap or "?") or "?"))
-	ns.OpenSidePanel(frame)
 	Panel.Refresh()
+end
+
+function Panel.Open()
+	if ns.Config then
+		ns.Config.Open("settings")
+	end
 end

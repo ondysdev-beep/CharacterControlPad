@@ -1,7 +1,7 @@
 # ForeverPad – Technický audit (Fáze 0)
 
 **Datum:** 2026-11-18
-**Stav:** Fáze 0–4 jsou ověřené ve hře (kapitoly 9 a 10). Fáze 5, konfigurátor a kontextové ovládání oken (v0.3–0.10.0) jsou hotové a otestované mimo hru (250+ testů, `npm test`). Čeká se na souhrnný test ve hře (kapitola 11).
+**Stav:** Fáze 0–4 jsou ověřené ve hře (kapitoly 9 a 10). Fáze 5, konfigurátor, kontextové ovládání oken a nové okno nastavení (v0.3–0.11.0) jsou hotové a otestované mimo hru (260+ testů, `npm test`). Čeká se na souhrnný test ve hře (kapitola 11).
 
 Značení podle zadání:
 
@@ -550,7 +550,7 @@ Požadavek hráče: kolečko u obchodníka sesílalo kouzlo místo zavření okn
 | NPC a questy | `GossipFrame.GreetingPanel.ScrollBox:GetFrames()` (`buttonType` 3/4/5); `QuestFrame` panely Greeting (`titleButtonPool`), Detail (`QuestFrameAcceptButton`), Progress (`QuestFrameCompleteButton`), Reward (`QuestInfoRewardsFrame.RewardButtons` typu `choice` + `QuestFrameCompleteQuestButton`) | D-pad ↑↓ výběr (zvýraznění), Křížek = potvrdit; po výběru odměny přeskočí na Dokončit |
 | Zavírání | `GetUIPanel(left/center/right/doublewide/fullscreen)`, `UISpecialFrames`, `IsAnyBagOpen()`, `GameMenuFrame`, `WorldMapFrame`, `LootFrame`, `SettingsPanel` | Kolečko = `TOGGLEGAMEMENU` (řetězec Esc z `Blizzard_GameMenuEsc`) |
 
-- **Nastavení:** okno **Okna** v patičce (`ContextPanel.lua`), `/fpad context [on|off|status|hints on|off|<skupina> on|off]`. Uloženo v `ForeverPadDB.context` (pro celý účet).
+- **Nastavení:** záložka **Okna** v okně nastavení (`ContextPanel.lua`, od v0.11.0), `/fpad context [on|off|status|hints on|off|<skupina> on|off]`. Uloženo v `ForeverPadDB.context` (pro celý účet).
 - **Nápověda:** řádek pod oknem, které je navrchu (např. „Křížek Koupit (předmět pod kurzorem) … Kolečko Zavřít“).
 - **NOT CONFIRMED (ve hře):**
   - `SECURE_ACTIONS.click` projde u Blizzard tlačítek (`HasAccessConstraints` / `ScriptedInput`), hlavně u předmětů v batohu a u `LFGDungeonReadyDialog`;
@@ -558,6 +558,27 @@ Požadavek hráče: kolečko u obchodníka sesílalo kouzlo místo zavření okn
   - `GetMouseFoci()` vrací přímo tlačítko předmětu;
   - pořadí položek v rozhovoru odpovídá zvýraznění;
   - `LootSlot` z addonu bere kořist bez blokace.
+
+### 11.13 Nové okno nastavení (v0.11.0)
+
+Požadavek hráče: nastavení je moc složité, chce ho přehlednější a hezčí.
+
+- **Jedno okno se třemi záložkami** (`ConfigWindow.lua`):
+  - **Ovladač:** obrázek ovladače a kolem něj 18 tlačítek, vlevo levá polovina ovladače, vpravo pravá. Každé tlačítko ukazuje ikonu a název akce a pod tím, kde akce je (např. „Hlavní bar #1“).
+    - Klik na tlačítko v seznamu nebo na obrázku otevře výběr akce, pravé tlačítko myši akci smaže. Najetí myší rozsvítí tlačítko na obrázku.
+    - Nahoře je přepínač vrstev. Ve vrstvě modifikátoru je modifikátor označený jako „drženo“.
+    - Uprostřed je velké tlačítko **Přiřadit na barech**.
+  - **Okna:** obsah dřívějšího panelu kontextového ovládání (`ContextPanel.Build`).
+  - **Nastavení:** modifikátory (`ModifierPanel.Build`, s tlačítky Použít / Vrátit), profil, jazyk a průvodce.
+- **Profil:** tlačítko „Profil: X“ vpravo nahoře. Profily a výběr akce se otevírají jako dialog uprostřed okna (strata `FULLSCREEN_DIALOG`), ne vedle něj, takže nepřetečou z obrazovky.
+- **Živé vrstvy:** okno 20× za sekundu čte `IsShiftKeyDown` / `IsControlKeyDown` / `IsAltKeyDown`. Dokud hráč drží modifikátor, ukazuje jeho vrstvu.
+- **Grafika:** vlastní textury `Media/Controller.tga` (512×256), `Media/Glyphs.tga` (8 odznaků ×, ○, □, △, ↑↓←→) a `Media/Glow.tga`. Generuje je `tools/make-art.js` (vlastní kresba přes SDF, 32bit TGA). Blizzard atlasy s ikonami PlayStation se nepoužívají, protože jejich přítomnost ve Forever není ověřená.
+- **Uložená data se nemění:** profily, bindy a nastavení zůstávají ve stejném formátu.
+- **NOT CONFIRMED (ve hře):**
+  - textury TGA ze složky addonu se načtou (cesta bez přípony);
+  - `IsShiftKeyDown` a další vrací `true` i pro modifikátor emulovaný tlačítkem ovladače (`GamePadEmulateShift`);
+  - `Button:SetFontString` u plochých tlačítek a font `GameFontNormalLarge` (v češtině jeho kopie s Noto Sans);
+  - okno 860×520 se vejde na obrazovku i při velkém měřítku UI (okno je `SetClampedToScreen`).
 
 ---
 

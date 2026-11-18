@@ -1,4 +1,4 @@
--- ForeverPad - context controls panel
+-- ForeverPad - context controls panel (the "Windows" page of the settings window)
 -- Switches the context layer (Context.lua) on/off as a whole, per window group, and its hint line.
 -- Settings are account wide (ForeverPadDB.context) and take effect immediately (out of combat).
 
@@ -10,26 +10,26 @@ local Context = ns.Context
 local Panel = {}
 ns.ContextPanel = Panel
 
-local WIDTH, HEIGHT = 470, 480
+local COLUMN = 414
 local frame
 local checks = {} -- id -> CheckButton ("enabled", "hints", or a group)
 
-local function CreateCheck(parent, label, desc, y)
+local function CreateCheck(parent, label, desc, x, y)
 	local ok, cb = pcall(CreateFrame, "CheckButton", nil, parent, "UICheckButtonTemplate")
 	if not ok or not cb then
 		cb = CreateFrame("CheckButton", nil, parent)
 	end
-	cb:SetSize(24, 24)
-	cb:SetPoint("TOPLEFT", parent, "TOPLEFT", 14, y)
+	cb:SetSize(26, 26)
+	cb:SetPoint("TOPLEFT", parent, "TOPLEFT", x, y)
 
 	cb.label = parent:CreateFontString(nil, "OVERLAY", ns.Font"GameFontNormal")
-	cb.label:SetPoint("TOPLEFT", parent, "TOPLEFT", 42, y - 4)
+	cb.label:SetPoint("TOPLEFT", parent, "TOPLEFT", x + 30, y - 5)
 	cb.label:SetText(label)
 
 	if desc then
 		cb.desc = parent:CreateFontString(nil, "OVERLAY", ns.Font"GameFontHighlightSmall")
-		cb.desc:SetPoint("TOPLEFT", parent, "TOPLEFT", 42, y - 20)
-		cb.desc:SetPoint("RIGHT", parent, "RIGHT", -14, 0)
+		cb.desc:SetPoint("TOPLEFT", parent, "TOPLEFT", x + 30, y - 22)
+		cb.desc:SetWidth(COLUMN - 50)
 		cb.desc:SetJustifyH("LEFT")
 		cb.desc:SetText(desc)
 	end
@@ -58,31 +58,34 @@ local function Changed()
 	Panel.Refresh()
 end
 
-local function Create()
-	frame = ns.CreatePanelFrame("ForeverPadContextPanel", WIDTH, HEIGHT)
-	ns.RegisterSidePanel(frame)
-	frame.title:SetText(L.CTX_TITLE)
+function Panel.Build(parent)
+	frame = CreateFrame("Frame", "ForeverPadContextPanel", parent)
+	frame:SetAllPoints(parent)
 
-	local help = frame:CreateFontString(nil, "OVERLAY", ns.Font"GameFontHighlightSmall")
-	help:SetPoint("TOPLEFT", frame, "TOPLEFT", 16, -32)
-	help:SetPoint("RIGHT", frame, "RIGHT", -16, 0)
-	help:SetJustifyH("LEFT")
+	frame.heading = ns.CreateHeading(frame, L.CTX_TITLE, 0, 0)
+	local help = ns.CreateText(frame, "GameFontHighlightSmall", 0, -26, 2 * COLUMN - 10)
 	help:SetText(L.CTX_HELP)
 
-	checks.enabled = CreateCheck(frame, L.CTX_ENABLED, nil, -72)
+	checks.enabled = CreateCheck(frame, L.CTX_ENABLED, nil, 0, -64)
 	checks.enabled:SetScript("OnClick", function(self)
 		Context.Settings().enabled = self:GetChecked() and true or false
 		Changed()
 	end)
 
-	checks.hints = CreateCheck(frame, L.CTX_HINTS, nil, -98)
+	checks.hints = CreateCheck(frame, L.CTX_HINTS, nil, COLUMN, -64)
 	checks.hints:SetScript("OnClick", function(self)
 		Context.Settings().hints = self:GetChecked() and true or false
 		Changed()
 	end)
 
+	local divider = frame:CreateTexture(nil, "ARTWORK")
+	divider:SetPoint("TOPLEFT", frame, "TOPLEFT", 0, -98)
+	divider:SetSize(2 * COLUMN - 10, 1)
+	divider:SetColorTexture(1, 1, 1, 0.1)
+
 	for i, group in ipairs(Context.GROUPS) do
-		local cb = CreateCheck(frame, Context.GroupLabel(group), L["CTX_DESC_" .. group:upper()], -132 - (i - 1) * 36)
+		local col, row = (i - 1) % 2, math.floor((i - 1) / 2)
+		local cb = CreateCheck(frame, Context.GroupLabel(group), L["CTX_DESC_" .. group:upper()], col * COLUMN, -108 - row * 60)
 		cb:SetScript("OnClick", function(self)
 			Context.Settings().off[group] = (not self:GetChecked()) or nil
 			Changed()
@@ -90,25 +93,15 @@ local function Create()
 		checks[group] = cb
 	end
 
-	local note = frame:CreateFontString(nil, "OVERLAY", ns.Font"GameFontDisableSmall")
-	note:SetPoint("BOTTOMLEFT", frame, "BOTTOMLEFT", 16, 44)
-	note:SetPoint("RIGHT", frame, "RIGHT", -16, 0)
-	note:SetJustifyH("LEFT")
+	local note = ns.CreateText(frame, "GameFontDisableSmall", 0, -356, 2 * COLUMN - 10)
 	note:SetText(L.CTX_NOTE)
 
-	local close = ns.CreateButton(frame, L.CLOSE, 100)
-	close:SetPoint("BOTTOMRIGHT", frame, "BOTTOMRIGHT", -16, 14)
-	close:SetScript("OnClick", function()
-		frame:Hide()
-	end)
-
 	frame:SetScript("OnShow", Panel.Refresh)
+	return frame
 end
 
 function Panel.Open()
-	if not frame then
-		Create()
+	if ns.Config then
+		ns.Config.Open("windows")
 	end
-	ns.OpenSidePanel(frame)
-	Panel.Refresh()
 end

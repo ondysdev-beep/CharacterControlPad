@@ -6,12 +6,13 @@ ForeverPad maps controller buttons and button combos to your normal Blizzard act
 their layout and the Edit Mode stay exactly as you set them up. The keyboard and mouse keep working
 at the same time.
 
-> Status: **beta (0.10.x)**. Built for WoW: Forever 1.60.1 (interface 16001). Feedback welcome.
+> Status: **beta (0.11.x)**. Built for WoW: Forever 1.60.1 (interface 16001). Feedback welcome.
 
 ## Features
 
 - **Your own layout.** Hover an action bar button and press a button or combo on the controller to
-  bind it. You can also use the settings window.
+  bind it. Or open the settings window: it shows a picture of the controller with the action of every
+  button, and you click a button to change it.
 - **Modifier layers.** Hold L1 / R1 (configurable, up to three modifiers) for 4 or 8 layers of actions,
   for example Cross, L1+Cross, R1+Cross and L1+R1+Cross. A short tap on a modifier can have its own action.
 - **Game and UI commands.** Jump, autorun, interact, targeting, map, bags, quest log and more.
@@ -25,8 +26,8 @@ at the same time.
   - **Other windows:** Cross loots everything, opens all mail and learns at a trainer. At the bank,
     Square moves the item under the cursor.
 
-  A hint line under the window shows the buttons. Each part can be switched off in the **Windows**
-  panel.
+  A hint line under the window shows the buttons. Each part can be switched off on the **Windows**
+  tab of the settings window.
 - **Profiles.** Each character remembers its own profile. You can create, copy, rename and delete profiles,
   and start a new one empty or from a template.
 - **First-run wizard.** Pick your modifiers, then choose between an empty layout and a template.
@@ -55,6 +56,10 @@ Copy the `ForeverPad` folder to
 2. Click **Start quick bind**. Hover an action bar button with the mouse and press a button or combo on the
    controller. Right-click a button to remove its combos. Press Esc when you are done.
 3. Type **/fpad** at any time to open the settings window. It is also in the addon menu next to the minimap.
+   - **Controller** tab: a picture of the controller. Click a button to choose its action, right-click
+     to remove it. The buttons at the top switch between layers (No modifier, L1, R1, L1+R1).
+   - **Windows** tab: the context controls for game windows.
+   - **Settings** tab: modifiers, profile, language and the setup wizard.
 
 ## Commands
 
@@ -99,14 +104,18 @@ Tlačítka a kombinace ovladače si namapuješ na své běžné action bary. Kl�
 - **První spuštění:** průvodce se zeptá na modifikátory (doporučeno L1 + R1) a na to, jestli chceš prázdné
   rozložení, nebo šablonu.
 - **Přiřazení:** v režimu **Přiřadit na barech** najeď myší na tlačítko baru a zmáčkni kombinaci na ovladači.
-- **Nastavení:** příkaz `/fpad`.
+- **Nastavení:** příkaz `/fpad`. Okno má tři záložky:
+  - **Ovladač:** obrázek ovladače. Klikni na tlačítko a vyber mu akci, pravým tlačítkem myši ji smažeš.
+    Nahoře přepínáš vrstvy (Bez modifikátoru, L1, R1, L1+R1).
+  - **Okna:** kontextové ovládání herních oken.
+  - **Nastavení:** modifikátory, profil, jazyk a průvodce.
 - **Kontextové ovládání oken:**
   - **Kolečko** zavře okno.
   - **U obchodníka** Křížek koupí a Čtverec prodá předmět pod kurzorem, Trojúhelník opraví vše a
     Options prodá odpad.
   - **U NPC a questů** D-pad vybírá a Křížek potvrdí.
   - **V potvrzovacích oknech** Křížek potvrdí a Kolečko odmítne.
-  - Vypnout se dá v panelu **Okna**.
+  - Vypnout se dá v záložce **Okna**.
   - V boji je vypnuté a platí tvoje bindy.
 - **Čeština** se zapne sama, když máš zapnutý překlad WowfCZ. Ručně ji přepneš tlačítkem v okně nebo `/fpad lang cs`.
 - ForeverPad funguje v rozhraní pro myš a klávesnici. V Blizzard režimu pro ovladač se sám pozastaví.

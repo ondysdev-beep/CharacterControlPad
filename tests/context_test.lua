@@ -283,10 +283,13 @@ ok(layers[ctxOwner()] == nil, "all closed -> no layer")
 ---------------- panel ----------------
 SlashCmdList.FOREVERPAD("")
 local cf = ForeverPadConfigFrame
-ok(cf.contextButton and cf.contextButton.text == "Windows", "config footer has the Windows button")
-cf.contextButton.scripts.OnClick()
+ok(cf.pageTabs.windows and cf.pageTabs.windows.text == "Windows", "settings window has the Windows tab")
+cf.pageTabs.windows.scripts.OnClick()
 local cp = ForeverPadContextPanel
-ok(cp.shown and cp.title.text == "Context controls", "context panel opens")
+ok(cp.shown and cf.pages.windows.shown and not cf.pages.controller.shown, "Windows tab shows the context page")
+ok(cp.heading.text == "Context controls", "context page heading")
+cf:Hide() SlashCmdList.FOREVERPAD("context")
+ok(cf.shown and cf.pages.windows.shown, "/fpad context opens the Windows page")
 local function check(label) for _, c in ipairs(cp.children) do if rawget(c, "label") and c.label.text == label then return c end end end
 local lootCheck = check("Loot")
 ok(lootCheck and lootCheck.checked == true, "group checkbox reflects setting")

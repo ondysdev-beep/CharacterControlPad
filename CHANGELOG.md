@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.11.0 - 2026-11-18
+- New settings window, simpler and clearer, with three tabs: **Controller**, **Windows** and **Settings**.
+- **Controller** tab: a picture of the controller with every button around it, showing the icon and
+  name of its action and where the action lives. Click a button in the list or on the picture to
+  choose an action; right-click removes it. Hovering a button lights it up on the picture.
+- Layer switch at the top. While you hold a modifier (L1, R1 ...) the window shows that layer.
+- **Settings** tab: modifiers, profile, language and setup wizard in one place. The profile button
+  is in the top right corner.
+- Choosing an action and managing profiles open as a dialog over the window.
+- Your profiles and bindings are kept as they are.
+
 ## 0.10.0 - 2026-11-18
 - Context controls: while a game window is open, some buttons temporarily do what fits the window.
   Circle closes windows. At a merchant, Cross buys and Square sells the item under the cursor,

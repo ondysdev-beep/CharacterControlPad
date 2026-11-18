@@ -43,6 +43,26 @@ local enUS = {
 	TAP_NOTE = "Modifier button: fires only on a short tap.",
 	BUTTON_NOT_FOUND = "button not found",
 
+	-- settings window layout
+	PAGE_CONTROLLER = "Controller",
+	PAGE_SETTINGS = "Settings",
+	LAYER_LABEL = "Layer:",
+	LAYER_HOLD_HINT = "Tip: hold a modifier (L1, R1 ...) on the controller and the window shows its layer.",
+	CONTROLLER_HELP = "Click a button in the list or on the controller to choose its action. Right-click removes it.",
+	QB_SHORT_HELP = "Or hover a button on your action bars and press a combo on the controller.",
+	SLOT_CLICK = "Click: change    Right-click: remove",
+	SLOT_HELD = "held",
+	SLOT_HELD_SUB = "modifier (%s)",
+	SLOT_HELD_TIP = "This button is held to reach this layer, so it has no action of its own here.",
+	PROFILE_BUTTON = "Profile: %s",
+	PROFILE_BUTTON_TIP = "Switch, create, copy or rename profiles.",
+	SETTINGS_PROFILE = "Profile",
+	SETTINGS_MANAGE_PROFILES = "Manage profiles",
+	SETTINGS_LANGUAGE = "Language",
+	SETTINGS_SETUP = "Setup wizard",
+	SETTINGS_SETUP_NOTE = "Choose the modifiers and an empty layout or a template again.",
+	MODS_REVERT = "Revert",
+
 	-- compatibility
 	COMPAT_CONFLICT = "|cffff4444%s is loaded - it also binds controller buttons. Use only one of the two addons.|r",
 	COMPAT_BARS = "|cffff8800%s detected - if it replaces the Blizzard bars, use 'Bind on bars' and hover its buttons.|r",
@@ -199,6 +219,25 @@ local csCZ = {
 	TAP_NOTE = "Tlačítko modifikátoru: spustí se jen krátkým ťuknutím.",
 	BUTTON_NOT_FOUND = "tlačítko nenalezeno",
 
+	PAGE_CONTROLLER = "Ovladač",
+	PAGE_SETTINGS = "Nastavení",
+	LAYER_LABEL = "Vrstva:",
+	LAYER_HOLD_HINT = "Tip: podrž na ovladači modifikátor (L1, R1 ...) a okno ukáže jeho vrstvu.",
+	CONTROLLER_HELP = "Klikni na tlačítko v seznamu nebo na ovladači a vyber mu akci. Pravým tlačítkem myši akci smažeš.",
+	QB_SHORT_HELP = "Nebo najeď myší na tlačítko action baru a zmáčkni kombinaci na ovladači.",
+	SLOT_CLICK = "Klik: změnit    Pravé tlačítko: smazat",
+	SLOT_HELD = "drženo",
+	SLOT_HELD_SUB = "modifikátor (%s)",
+	SLOT_HELD_TIP = "Toto tlačítko se drží pro přepnutí do této vrstvy, takže tu nemá vlastní akci.",
+	PROFILE_BUTTON = "Profil: %s",
+	PROFILE_BUTTON_TIP = "Přepnout, vytvořit, kopírovat nebo přejmenovat profil.",
+	SETTINGS_PROFILE = "Profil",
+	SETTINGS_MANAGE_PROFILES = "Spravovat profily",
+	SETTINGS_LANGUAGE = "Jazyk",
+	SETTINGS_SETUP = "Průvodce",
+	SETTINGS_SETUP_NOTE = "Znovu vybrat modifikátory a prázdné rozložení nebo šablonu.",
+	MODS_REVERT = "Vrátit",
+
 	COMPAT_CONFLICT = "|cffff4444Je načtený %s - také binduje tlačítka ovladače. Používej jen jeden z těch dvou addonů.|r",
 	COMPAT_BARS = "|cffff8800Nalezen %s - pokud nahrazuje Blizzard bary, použij 'Přiřadit na barech' a najeď na jeho tlačítka.|r",
 
@@ -347,6 +386,7 @@ ns.L = setmetatable({}, {
 local FONT_BASES = {
 	"GameFontNormal", "GameFontHighlight", "GameFontDisable",
 	"GameFontNormalSmall", "GameFontHighlightSmall", "GameFontDisableSmall", "ChatFontNormal",
+	"GameFontNormalLarge",
 }
 local customFonts = {}
 

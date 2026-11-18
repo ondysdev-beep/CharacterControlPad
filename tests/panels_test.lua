@@ -93,9 +93,11 @@ findChild(wiz, "Close").scripts.OnClick()
 ---------------- modifier panel ----------------
 local cf = ForeverPadConfigFrame
 if not cf.shown then SlashCmdList.FOREVERPAD("") end
-cf.modifiersButton.scripts.OnClick()
+cf.pageTabs.settings.scripts.OnClick()
 local mp = ForeverPadModifierPanel
-ok(mp.shown and mp.layers.text:find("4"), "modifier panel open, 4 layers")
+ok(cf.pages.settings.shown and not cf.pages.controller.shown, "Settings tab shows the settings page")
+ok(mp.shown and mp.layers.text:find("4"), "modifier section shown, 4 layers")
+ok(cf.pages.settings.profileText.text:find("Default"), "settings page shows the active profile")
 ok(mp.apply.enabled == false, "apply disabled until change")
 -- template has SHIFT-PADLTRIGGER bindings; making L2 the ALT modifier -> nothing (SHIFT is L2 now!). Instead: set SHIFT to L1
 local function cell(mod, label) for _, c in ipairs(mp.children) do end end
@@ -116,11 +118,17 @@ ok(p.modifiers.ALT == "PADLTRIGGER" and p.modifiers.SHIFT == "PADLSHOULDER", "mo
 ok(p.bindings["SHIFT-PADLTRIGGER"] == nil and p.bindings["PADLTRIGGER"] ~= nil, "mod+mod binding removed, tap kept")
 ok(overrides["SHIFT-PAD1"] == "ACTIONBUTTON5", "SHIFT layer kept, now reached with L1")
 ok(C_CVar.GetCVar("GamePadEmulateAlt") == "PADLTRIGGER", "ALT cvar applied")
+ok(mp.apply.enabled == false and mp.revert.enabled == false, "nothing staged after apply")
+btn(2, 1).scripts.OnClick() -- CTRL = none (staged)
+ok(mp.apply.enabled == true, "change staged")
+mp.revert.scripts.OnClick()
+ok(mp.apply.enabled == false and p.modifiers.CTRL == "PADRTRIGGER", "revert drops the staged change")
 
 ---------------- profiles panel ----------------
-cf.profilesButton.scripts.OnClick()
+ok(cf.profileButton.text == "Profile: Default", "profile button shows the active profile")
+cf.profileButton.scripts.OnClick()
 local pp = ForeverPadProfilesPanel
-ok(pp.shown and not mp.shown, "profiles panel replaces modifier panel")
+ok(pp.shown, "profile button opens the profiles dialog")
 ok(pp.active.text:find("Default"), "shows active profile")
 findChild(pp, "New empty").scripts.OnClick(findChild(pp, "New empty"))
 ok(tostring(pp.message.text):find("name"), "needs a name, got: " .. tostring(pp.message.text) .. " btn=" .. tostring(rawget(findChild(pp, "New empty"), "baseText")))
@@ -159,14 +167,15 @@ pp.nameBox:SetText("Main")
 local ren; for _, c in ipairs(pp.children) do if rawget(c, "baseText") == "Rename active" then ren = c end end
 ren.scripts.OnClick(ren)
 ok(ns.Profiles.ActiveName() == "Main" and db.profiles.Default == nil, "rename active")
-ok(cf.status.text:find("Main"), "config window status follows profile")
+ok(cf.status.text:find("Main") and cf.profileButton.text == "Profile: Main", "config window follows profile")
 
 ---------------- combat ----------------
 combat = true
 fire("PLAYER_REGEN_DISABLED")
 ok(not pp.shown, "side panels close in combat")
-cf.profilesButton.scripts.OnClick()
+cf.profileButton.scripts.OnClick()
 ok(not pp.shown, "cannot open in combat")
+ok(cf.profileButton.enabled == false and mp.apply.enabled == false and btn(1, 1).enabled == false, "settings locked in combat")
 combat = false
 
 io.write("PANEL TESTS PASSED: " .. passed .. "\n")
