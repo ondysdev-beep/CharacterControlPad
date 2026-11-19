@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.14.1 - 2026-11-19
+- First release on CurseForge as a full Release (0.14.0 was a beta). Same features as 0.14.0.
+
 ## 0.14.0 - 2026-11-19
 - Bags with the controller: while a bag is open, the D-pad moves a gold frame over your items (as
   they lie on screen) and the confirm button uses the selected item like a right-click (scrolls,

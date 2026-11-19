@@ -1,7 +1,7 @@
 ## Interface: 16001
 ## Title: CharacterControlPad
 ## Notes: DualSense / gamepad binding layer for WoW: Forever. Keeps the original Blizzard UI and maps controller buttons and combos to its action bars.
-## Version: 0.14.0
+## Version: 0.14.1
 ## Author: Zap Bee
 ## Category: Action Bars
 ## IconTexture: Interface\Icons\INV_Misc_Gear_01
