@@ -23,7 +23,7 @@ While a window is open, a few buttons temporarily do what fits it. When the wind
 | Window | Buttons |
 |---|---|
 | Any window (bags, map, character, merchant ...) | **Circle** closes it, like Esc |
-| Merchant | **Cross** buys and **Square** sells the item under the cursor, **Triangle** repairs all, **Options** sells junk |
+| Merchant | **D-pad** chooses goods, **Cross** buys one piece. **Touchpad** click switches to your bags: **D-pad** chooses, **Cross** sells (Touchpad again = back to buying). At the end of a page, Up / Down turns the page. The item under the mouse or touchpad always wins. **Triangle** repairs all, **Options** sells junk |
 | NPC dialogs and quests | **D-pad** chooses an option (highlighted), **Cross** accepts, continues or completes. After picking a reward, Cross completes the quest |
 | Loot | **D-pad** chooses an item, **Cross** takes it, **Square** takes everything |
 | Bags | **D-pad** moves over your items, **Cross** uses the selected one (scroll, food, gear, containers). The item under the mouse or touchpad works too |

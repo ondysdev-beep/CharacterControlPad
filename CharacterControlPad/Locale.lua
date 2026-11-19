@@ -171,7 +171,7 @@ local enUS = {
 	CTX_GROUP_PLACING = "Placing (campfire ...)",
 	CTX_DESC_CLOSE = "Circle closes open windows (bags, map, character ...), like Esc.",
 	CTX_DESC_POPUP = "Confirmations, ready check, dungeon queue, invitations: Cross accepts, Circle declines.",
-	CTX_DESC_MERCHANT = "Cross buys the item under the cursor, Square sells it from your bags, Triangle repairs all, Options sells junk.",
+	CTX_DESC_MERCHANT = "D-pad chooses, confirm buys one; Touchpad switches to your bags to sell. Triangle repairs, Options sells junk.",
 	CTX_DESC_QUEST = "D-pad Up / Down chooses an option, the confirm button accepts, continues or completes.",
 	CTX_DESC_LOOT = "D-pad Up / Down chooses an item, the confirm button takes it, Square takes everything (Cross when Square confirms).",
 	CTX_DESC_MAIL = "Cross opens all mail.",
@@ -201,6 +201,9 @@ local enUS = {
 	CTX_PLACE = "Place",
 	CTX_CANCEL = "Cancel",
 	CTX_CONFIRM_LABEL = "Confirm button:",
+	CTX_TO_SELL = "Sell from bags",
+	CTX_TO_BUY = "Buy",
+	CTX_OPEN_BAGS = "Open bags",
 	CLOSE = "Close",
 }
 
@@ -351,7 +354,7 @@ local csCZ = {
 	CTX_GROUP_PLACING = "Umisťování (ohniště ...)",
 	CTX_DESC_CLOSE = "Kolečko zavře otevřená okna (batohy, mapu, postavu ...), stejně jako Esc.",
 	CTX_DESC_POPUP = "Potvrzení, ready check, fronta do dungeonu, pozvánky: Křížek potvrdí, Kolečko odmítne.",
-	CTX_DESC_MERCHANT = "Křížek koupí předmět pod kurzorem, Čtverec ho prodá z batohu, Trojúhelník opraví vše, Options prodá odpad.",
+	CTX_DESC_MERCHANT = "D-pad vybírá, potvrzení koupí kus; Touchpad přepne na prodej z batohu. Trojúhelník opraví, Options prodá odpad.",
 	CTX_DESC_QUEST = "D-pad nahoru / dolů vybírá možnost, potvrzovací tlačítko přijme, pokračuje nebo dokončí.",
 	CTX_DESC_LOOT = "D-pad vybírá předmět, potvrzovací tlačítko ho sebere, Čtverec sebere vše (Křížek, když potvrzuje Čtverec).",
 	CTX_DESC_MAIL = "Křížek otevře všechnu poštu.",
@@ -381,6 +384,9 @@ local csCZ = {
 	CTX_PLACE = "Umístit",
 	CTX_CANCEL = "Zrušit",
 	CTX_CONFIRM_LABEL = "Potvrzovací tlačítko:",
+	CTX_TO_SELL = "Prodej z batohu",
+	CTX_TO_BUY = "Nákup",
+	CTX_OPEN_BAGS = "Otevřít batoh",
 	CLOSE = "Zavřít",
 
 	-- data labels (Data.lua), applied by ApplyDataLocale

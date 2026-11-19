@@ -32,6 +32,7 @@ ns.Context = Context
 local KEY = {
 	CROSS = "PAD1", CIRCLE = "PAD2", SQUARE = "PAD3", TRIANGLE = "PAD4",
 	OPTIONS = "PADFORWARD", UP = "PADDUP", DOWN = "PADDDOWN", LEFT = "PADDLEFT", RIGHT = "PADDRIGHT",
+	TOUCHPAD = "PADBACK",
 }
 Context.KEY = KEY
 
@@ -50,6 +51,8 @@ local bound = {} -- key -> signature of what is bound now
 local highlight, hintFrame
 local nav = { list = {}, index = 1, signature = "" }
 local bag = { selected = nil, lastHover = nil } -- D-pad selection in the bags
+-- Merchant: "buy" = the D-pad selection is on the goods, "sell" = it is in the bags (Touchpad toggles).
+local merchant = { mode = "buy", selected = nil, lastHover = nil, afterPage = nil }
 local tipTarget -- bag item whose tooltip the addon shows
 
 ------------------------------------------------------------------------
@@ -647,11 +650,11 @@ CONTEXTS.bags = function(c)
 	end
 	local target = bag.selected
 	c.navTarget = target
-	c.bagTip = (target ~= hovered) and target or nil
+	c.tip = (target ~= hovered) and target or nil
 
 	local key, label = Context.ConfirmKey(), L.CTX_USE
 	if Shown("MerchantFrame") then
-		key, label = KEY.SQUARE, L.CTX_SELL
+		label = L.CTX_SELL -- merchant in "sell" mode (in "buy" mode the merchant context owns the D-pad)
 	elseif Shown("BankFrame") then
 		key, label = KEY.SQUARE, L.CTX_MOVE
 	end
@@ -664,18 +667,126 @@ CONTEXTS.bags = function(c)
 	c.Hint(KEY.UP, L.CTX_CHOOSE, anchor)
 end
 
+-- Goods on the current merchant page (MerchantItem1..12ItemButton, Blizzard_UIPanels_Game/Mainline/
+-- MerchantFrame.xml; 10 per page, 12 on the buyback tab). Right click buys one / buys back.
+local function MerchantList()
+	local list = {}
+	for i = 1, 12 do
+		local b = Frame("MerchantItem" .. i .. "ItemButton")
+		if b and Visible(b) then
+			list[#list + 1] = b
+		end
+	end
+	return list
+end
+
+-- Bottom-right item (lowest row, then rightmost).
+local function LastItem(list)
+	local best, bx, by
+	for _, b in ipairs(list) do
+		local x, y = Center(b)
+		if x and (not best or y < by - 4 or (math.abs(y - by) <= 4 and x > bx)) then
+			best, bx, by = b, x, y
+		end
+	end
+	return best or list[#list]
+end
+
+function Context.MoveMerchant(direction)
+	local nextItem = Context.Neighbor(MerchantList(), merchant.selected, direction)
+	if nextItem then
+		merchant.selected = nextItem
+	end
+	Context.Refresh()
+end
+
+function Context.ToggleMerchantMode()
+	merchant.mode = (merchant.mode == "buy") and "sell" or "buy"
+	Context.Refresh()
+end
+
+function Context.MerchantMode()
+	return merchant.mode
+end
+
+local function AnyBagOpen()
+	if type(IsAnyBagOpen) == "function" then
+		local ok, open = pcall(IsAnyBagOpen)
+		return ok and open == true
+	end
+	return #BagList() > 0
+end
+
+-- Merchant. Touchpad switches between buying (D-pad over the goods) and selling (D-pad over the
+-- bags, see "bags"); the confirm button buys / sells the selected item, one piece, like a right
+-- click. At the end of a page Up / Down turns the page. The item under the mouse or the touchpad
+-- always wins. Triangle repairs, Options sells junk.
 CONTEXTS.merchant = function(c)
 	if not Shown("MerchantFrame") then
+		merchant.mode, merchant.selected, merchant.lastHover, merchant.afterPage = "buy", nil, nil, nil
 		return
 	end
+	local confirm = Context.ConfirmKey()
 	local focus = Context.MouseFocus()
-	if Context.IsMerchantItem(focus) and Visible(focus) then
-		c.Claim(KEY.CROSS, Click(focus, L.CTX_BUY, "RightButton"))
-	elseif Context.IsBagItem(focus) and Visible(focus) then
-		c.Claim(KEY.SQUARE, Click(focus, L.CTX_SELL, "RightButton"))
+	local hoverGoods = (Context.IsMerchantItem(focus) and Visible(focus)) and focus or nil
+	local hoverBag = (not hoverGoods and Context.IsBagItem(focus) and Visible(focus)) and focus or nil
+	if hoverGoods then
+		c.Claim(confirm, Click(hoverGoods, L.CTX_BUY, "RightButton"))
+	elseif hoverBag then
+		c.Claim(confirm, Click(hoverBag, L.CTX_SELL, "RightButton"))
+		c.Claim(KEY.SQUARE, Click(hoverBag, L.CTX_SELL, "RightButton"))
 	end
-	c.Hint(KEY.CROSS, L.CTX_BUY_HINT, "MerchantFrame")
-	c.Hint(KEY.SQUARE, L.CTX_SELL_HINT)
+
+	local buying = merchant.mode == "buy"
+	c.Claim(KEY.TOUCHPAD, { kind = "func", fn = Context.ToggleMerchantMode, label = L.CTX_TO_SELL, sig = "merchant-mode" })
+
+	if buying then
+		local list = MerchantList()
+		if #list > 0 then
+			if hoverGoods and hoverGoods ~= merchant.lastHover then
+				merchant.selected = hoverGoods
+			end
+			merchant.lastHover = hoverGoods
+			if merchant.afterPage then
+				merchant.selected = merchant.afterPage == "first" and FirstItem(list) or LastItem(list)
+				merchant.afterPage = nil
+			end
+			local present = false
+			for _, b in ipairs(list) do
+				if b == merchant.selected then
+					present = true
+				end
+			end
+			if not present then
+				merchant.selected = FirstItem(list)
+			end
+			local target = merchant.selected
+			c.navTarget = target
+			c.tip = (target ~= hoverGoods) and target or nil
+			c.Claim(confirm, Click(target, L.CTX_BUY, "RightButton"))
+			for direction, k in pairs({ up = KEY.UP, down = KEY.DOWN, left = KEY.LEFT, right = KEY.RIGHT }) do
+				if not Context.Neighbor(list, target, direction) and direction == "down" and Usable("MerchantNextPageButton") then
+					c.Claim(k, Click(MerchantNextPageButton, L.CTX_CHOOSE))
+				elseif not Context.Neighbor(list, target, direction) and direction == "up" and Usable("MerchantPrevPageButton") then
+					c.Claim(k, Click(MerchantPrevPageButton, L.CTX_CHOOSE))
+				else
+					c.Claim(k, { kind = "func", fn = function() Context.MoveMerchant(direction) end, label = L.CTX_CHOOSE, sig = "merchant-" .. direction })
+				end
+			end
+		end
+		c.Hint(confirm, L.CTX_BUY, "MerchantFrame")
+		c.Hint(KEY.UP, L.CTX_CHOOSE)
+		c.Hint(KEY.TOUCHPAD, L.CTX_TO_SELL)
+	else
+		if not AnyBagOpen() then
+			c.Claim(confirm, { kind = "command", command = "OPENALLBAGS", label = L.CTX_OPEN_BAGS })
+			c.Hint(confirm, L.CTX_OPEN_BAGS, "MerchantFrame")
+		else
+			c.Hint(confirm, L.CTX_SELL, "MerchantFrame")
+			c.Hint(KEY.UP, L.CTX_CHOOSE)
+		end
+		c.Hint(KEY.TOUCHPAD, L.CTX_TO_BUY)
+	end
 	if Usable("MerchantRepairAllButton") then
 		c.Claim(KEY.TRIANGLE, Click(MerchantRepairAllButton, L.CTX_REPAIR))
 		c.Hint(KEY.TRIANGLE, L.CTX_REPAIR)
@@ -771,11 +882,18 @@ local function Signature(spec)
 	return "func:" .. (spec.sig or tostring(spec.fn))
 end
 
-local function AfterClick()
+local function AfterClick(proxy)
 	-- a chosen quest reward moves the selection to the Complete button
 	local target = nav.list[nav.index]
 	if target and rawget(target, "type") == "choice" and nav.index < #nav.list then
 		nav.index = #nav.list
+	end
+	-- a merchant page turned with the D-pad: continue at the top (next page) / bottom (previous page)
+	local clicked = type(proxy) == "table" and type(proxy.GetAttribute) == "function" and proxy:GetAttribute("clickbutton")
+	if clicked ~= nil and clicked == Frame("MerchantNextPageButton") then
+		merchant.afterPage = "first"
+	elseif clicked ~= nil and clicked == Frame("MerchantPrevPageButton") then
+		merchant.afterPage = "last"
 	end
 	if C_Timer and C_Timer.After then
 		C_Timer.After(0, Context.Refresh)
@@ -896,7 +1014,7 @@ local function UpdateHighlight(target)
 	highlight:Show()
 end
 
-local HINT_ORDER = { KEY.UP, KEY.CROSS, KEY.SQUARE, KEY.TRIANGLE, KEY.OPTIONS, KEY.CIRCLE }
+local HINT_ORDER = { KEY.CROSS, KEY.SQUARE, KEY.TRIANGLE, KEY.UP, KEY.TOUCHPAD, KEY.OPTIONS, KEY.CIRCLE }
 
 function Context.HintText(hints)
 	local byKey = {}
@@ -947,8 +1065,15 @@ local function UpdateHints(c)
 end
 
 -- Tooltip of the bag item selected with the D-pad (the mouse shows its own tooltip when hovering).
+-- Tooltip of the item selected with the D-pad: a bag slot or merchant goods (the same merchant
+-- button shows other goods on another page, so the item index is part of the key).
 local function UpdateBagTip(target)
-	if target == tipTarget then
+	local okId, id = false, nil
+	if target then
+		okId, id = pcall(target.GetID, target)
+	end
+	local key = target and (tostring(target) .. ":" .. tostring(okId and id)) or nil
+	if key == tipTarget then
 		return
 	end
 	local tt = ns.GetTooltip and ns.GetTooltip()
@@ -958,19 +1083,26 @@ local function UpdateBagTip(target)
 	if tipTarget and not target then
 		tt:Hide()
 	end
-	tipTarget = target
-	if not target then
+	tipTarget = key
+	if not target or not okId or type(id) ~= "number" then
 		return
 	end
-	local okBag, bagID = pcall(target.GetBagID, target)
-	local okSlot, slot = pcall(target.GetID, target)
-	if okBag and okSlot and type(bagID) == "number" and type(slot) == "number" then
+	local shown
+	if Context.IsMerchantItem(target) then
+		local buyback = Frame("MerchantFrame") and rawget(MerchantFrame, "selectedTab") == 2
 		tt:SetOwner(target, "ANCHOR_RIGHT")
-		if pcall(tt.SetBagItem, tt, bagID, slot) then
-			ns.ShowTooltip()
-		else
-			tt:Hide()
+		shown = pcall(buyback and tt.SetBuybackItem or tt.SetMerchantItem, tt, id)
+	else
+		local okBag, bagID = pcall(target.GetBagID, target)
+		if okBag and type(bagID) == "number" then
+			tt:SetOwner(target, "ANCHOR_RIGHT")
+			shown = pcall(tt.SetBagItem, tt, bagID, id)
 		end
+	end
+	if shown then
+		ns.ShowTooltip()
+	elseif shown == false then
+		tt:Hide()
 	end
 end
 
@@ -1013,7 +1145,7 @@ function Context.Refresh()
 	end
 	UpdateHighlight(c.navTarget)
 	UpdateHints(c)
-	UpdateBagTip(c.bagTip)
+	UpdateBagTip(c.tip)
 end
 
 -- True while the context layer holds this key (the engine's conflict check ignores it then).

@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.15.0 - 2026-11-19
+- Buying with the controller: at a merchant, the D-pad moves a gold frame over the goods and the
+  confirm button buys one piece (like a right-click). The tooltip shows the item and its price.
+  At the end of a page, D-pad Up / Down turns to the previous / next page. Works on the buyback
+  tab too.
+- Touchpad click switches between buying (goods) and selling (your bags, the confirm button sells
+  the selected item). The hint line under the merchant shows the current mode.
+- The item under the mouse or the touchpad always wins: the confirm button buys hovered goods and
+  sells a hovered bag item.
+
 ## 0.14.1 - 2026-11-19
 - First release on CurseForge as a full Release (0.14.0 was a beta). Same features as 0.14.0.
 

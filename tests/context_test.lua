@@ -157,7 +157,7 @@ ok(effective("PAD1") == "CLICK CharacterControlPadContextPAD1:RightButton" and C
 ok(effective("PAD3") == "ACTIONBUTTON3", "Square untouched while hovering a merchant item")
 mouseFocus = bagItem refresh()
 ok(effective("PAD3") == "CLICK CharacterControlPadContextPAD3:RightButton" and CharacterControlPadContextPAD3.attributes.clickbutton == bagItem, "hover bag item -> Square = right click (sell)")
-ok(effective("PAD1") == "ACTIONBUTTON1", "Cross back to normal when not hovering a merchant item")
+ok(effective("PAD1") == "CLICK CharacterControlPadContextPAD1:RightButton" and CharacterControlPadContextPAD1.attributes.clickbutton == bagItem, "hovered bag item: the confirm button sells it too")
 mouseFocus = bag refresh()
 ok(effective("PAD3") == "ACTIONBUTTON3", "container frame itself is not an item")
 MerchantSellAllJunkButton.IsEnabled = function() return true end refresh()
@@ -338,9 +338,52 @@ ok(ns.db.context.confirm == "PAD3" and effective("PAD3") == "CLICK CharacterCont
 SlashCmdList.CHARACTERCONTROLPAD("context confirm options") refresh()
 ok(ns.db.context.confirm == "PAD3", "only Cross / Square / Triangle can confirm")
 SlashCmdList.CHARACTERCONTROLPAD("context confirm cross")
+-- merchant: buy mode (D-pad over the goods) <-> sell mode (D-pad over the bags), Touchpad toggles
+local goods = {}
+for i = 1, 4 do -- two columns, two rows on page 1
+  local col, row = (i - 1) % 2, math.floor((i - 1) / 2)
+  goods[i] = Plain({ name = "MerchantItem" .. i .. "ItemButton", GetID = function() return i end, GetCenter = function() return 50 + col * 150, 400 - row * 50 end })
+  _G["MerchantItem" .. i .. "ItemButton"] = goods[i]
+end
+local nextPage = Plain({ IsEnabled = function() return true end })
+local prevPage = Plain({ IsEnabled = function() return false end })
+MerchantNextPageButton, MerchantPrevPageButton = nextPage, prevPage
 MerchantFrame.shown = true refresh()
-ok(effective("PAD3") == "CLICK CharacterControlPadContextPAD3:RightButton" and CharacterControlPadContextPAD3.attributes.clickbutton == items[4] and effective("PAD1") == "ACTIONBUTTON1", "at a merchant Square sells the selected bag item")
+ok(ns.Context.MerchantMode() == "buy" and sel() == goods[1] and effective("PAD1") == "CLICK CharacterControlPadContextPAD1:RightButton", "merchant opens in buy mode: Cross buys the first goods (right click)")
+ok(CharacterControlPadContextHighlight.allPoints == goods[1], "goods selection highlighted")
+ok(effective("PADBACK") == "CLICK CharacterControlPadContextFnPADBACK:LeftButton", "Touchpad = buy / sell switch")
+local mh = CharacterControlPadContextHints.text.text
+ok(mh:find("Buy", 1, true) and mh:find("Touchpad", 1, true) and mh:find("Sell from bags", 1, true) and mh:find("D-pad", 1, true), "merchant hint in buy mode: " .. mh)
+press("RIGHT") ok(sel() == goods[2], "Right -> next goods")
+press("DOWN") ok(sel() == goods[4], "Down -> goods below")
+ok(effective("PADDDOWN") == "CLICK CharacterControlPadContextPADDDOWN:LeftButton" and CharacterControlPadContextPADDDOWN.attributes.clickbutton == nextPage, "bottom row: Down turns the page (secure click on the next page button)")
+ok(effective("PADDUP") == "CLICK CharacterControlPadContextFnPADDUP:LeftButton", "Up still moves inside the page")
+CharacterControlPadContextPADDDOWN.scripts.PostClick(CharacterControlPadContextPADDDOWN) runTimers()
+ok(sel() == goods[1], "after turning the page the selection starts at the top")
+press("DOWN") press("DOWN")
+ok(sel() == goods[3] and CharacterControlPadContextPADDDOWN.attributes.clickbutton == nextPage, "Down at the bottom row again offers the next page")
+local tipBefore = CharacterControlPadTooltip
+ok(tipBefore ~= nil, "goods tooltip uses the private tooltip")
+-- switch to selling: the D-pad goes to the bags, confirm sells
+CharacterControlPadContextFnPADBACK.scripts.OnClick(CharacterControlPadContextFnPADBACK)
+ok(ns.Context.MerchantMode() == "sell" and sel() == items[4], "Touchpad -> sell mode: Cross sells the selected bag item")
+mh = CharacterControlPadContextHints.text.text
+ok(mh:find("Sell", 1, true) and mh:find("Buy", 1, true), "merchant hint in sell mode: " .. mh)
+press("LEFT") ok(sel() == items[3], "D-pad moves in the bags while selling")
+bagsOpen = false bagFrame.shown = false refresh()
+ok(effective("PAD1") == "OPENALLBAGS", "sell mode without open bags: Cross opens the bags")
+bagsOpen = true bagFrame.shown = true
+CharacterControlPadContextFnPADBACK.scripts.OnClick(CharacterControlPadContextFnPADBACK)
+ok(ns.Context.MerchantMode() == "buy" and sel() == goods[3], "Touchpad again -> back to buying, selection kept")
+mouseFocus = goods[2] refresh()
+ok(sel() == goods[2], "goods under the mouse / touchpad become the selection")
+CharacterControlPadContextFnPADBACK.scripts.OnClick(CharacterControlPadContextFnPADBACK)
+ok(sel() == goods[2], "sell mode, but the hovered goods still win: Cross buys what is under the cursor")
+mouseFocus = nil
 MerchantFrame.shown = false refresh()
+ok(ns.Context.MerchantMode() == "buy", "closing the merchant resets to buy mode")
+for i = 1, 4 do _G["MerchantItem" .. i .. "ItemButton"] = nil end
+MerchantNextPageButton, MerchantPrevPageButton = nil, nil
 
 ---------------- placing (ground targeting) ----------------
 SpellIsTargeting = function() return true end refresh()

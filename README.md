@@ -6,7 +6,7 @@ CharacterControlPad maps controller buttons and button combos to your normal Bli
 their layout and the Edit Mode stay exactly as you set them up. The keyboard and mouse keep working
 at the same time.
 
-> Status: **beta (0.14.x)**. Built for WoW: Forever 1.60.1 (interface 16001). Feedback welcome.
+> Status: **beta (0.15.x)**. Built for WoW: Forever 1.60.1 (interface 16001). Feedback welcome.
 
 ## Features
 
@@ -19,8 +19,10 @@ at the same time.
 - **Context controls for windows.** While a window is open, a few buttons do what fits it, and they
   go back to your own bindings when it closes:
   - **Circle** closes windows.
-  - **Merchant:** Cross buys and Square sells the item under the cursor, Triangle repairs, Options
-    sells junk.
+  - **Merchant:** the D-pad chooses goods and Cross buys one piece. Touchpad click switches to your
+    bags, where the D-pad chooses and Cross sells (Touchpad again goes back to buying). At the end
+    of a page, Up / Down turns the page. The item under the mouse or the touchpad always wins.
+    Triangle repairs, Options sells junk.
   - **NPC dialogs and quests:** the D-pad chooses and Cross accepts, continues or completes.
   - **Dialogs** (ready check, dungeon queue, invitations): Cross accepts, Circle declines.
   - **Loot:** the D-pad chooses an item, Cross takes it, Square takes everything.
@@ -142,8 +144,10 @@ Tlačítka a kombinace ovladače si namapuješ na své běžné action bary. Kl�
   - **Nastavení:** modifikátory, profil, jazyk a průvodce.
 - **Kontextové ovládání oken:**
   - **Kolečko** zavře okno.
-  - **U obchodníka** Křížek koupí a Čtverec prodá předmět pod kurzorem, Trojúhelník opraví vše a
-    Options prodá odpad.
+  - **U obchodníka** D-pad vybírá zboží a Křížek koupí jeden kus. Stisk touchpadu přepne na batoh,
+    kde D-pad vybírá a Křížek prodává (další stisk touchpadu vrátí nákup). Na konci stránky D-pad
+    nahoru / dolů listuje. Předmět pod myší nebo touchpadem má vždy přednost. Trojúhelník opraví vše
+    a Options prodá odpad.
   - **U NPC a questů** D-pad vybírá a Křížek potvrdí.
   - **U kořisti** D-pad vybírá předmět, Křížek ho sebere a Čtverec sebere všechno.
   - **V batohu** D-pad vybírá předmět a Křížek ho použije (jako pravý klik: svitek, výstroj, krabička).
