@@ -89,7 +89,7 @@ English and Czech. Czech is chosen automatically when the Czech translation addo
 | `/ccp unmap L1+Cross` | remove a combo |
 | `/ccp mod shift L1` | set modifier buttons (shift / ctrl / alt) |
 | `/ccp profile ...` | profiles: use, new, template, copy, rename, delete, reset |
-| `/ccp context` | context controls for windows (`on`, `off`, `hints on/off`, `merchant off` ...) |
+| `/ccp context` | context controls for windows (`on`, `off`, `hints on/off`, `confirm cross/square/triangle`, `merchant off` ...) |
 | `/ccp cursor on/off` | `off` (default): the game never switches to its gamepad cursor |
 | `/ccp on` / `/ccp off` | enable / disable CharacterControlPad |
 | `/ccp lang en/cs/auto` | language |
@@ -109,6 +109,8 @@ English and Czech. Czech is chosen automatically when the Czech translation addo
 ---
 
 ## Bug reports
+
+Report bugs in the comments here or as an issue on [GitHub](https://github.com/ondysdev-beep/CharacterControlPad/issues). The source code is on [GitHub](https://github.com/ondysdev-beep/CharacterControlPad) too.
 
 Please describe what you pressed, what you expected and what happened. Screenshots help. For technical details, type `/ccp debug audit`, then `/reload`, and attach the file
 `World of Warcraft\_forever_\WTF\Account\<account>\SavedVariables\CharacterControlPad.lua`.
