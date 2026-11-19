@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.15.2 - 2026-11-19
+- Fix: R1 and R2 did not work as modifiers (R1+Cross, R2+Cross ... cast nothing). In WoW: Forever
+  they are the gamepad cursor click buttons by default (R2 = left click, R1 = right click), and the
+  game does not use a cursor click button as a modifier, even while the cursor is off. While the
+  gamepad cursor is kept off, a cursor click that sits on a modifier button is now moved off it
+  (temporary setting, your game settings are not changed).
+
 ## 0.15.1 - 2026-11-19
 - Merchant: the confirm button now always buys / sells the item in the gold frame, also when the
   mouse rests on another item (before, the item under the mouse could be bought or sold instead).

@@ -283,11 +283,17 @@ local function RevertModifiers()
 	end
 end
 
-local function ApplyModifiers(mods)
+-- force: set every modifier again (after a cursor click button was freed, so the client
+-- re-evaluates the emulation for that button).
+local function ApplyModifiers(mods, force)
 	local results = {}
 	for _, m in ipairs(ns.MODIFIERS) do
 		local wanted = mods[m.id] or "none"
 		local current = GetCVarValue(m.cvar)
+		if force and wanted ~= "none" then
+			pcall(C_CVar.SetTempCVar, m.cvar, "none")
+			current = nil
+		end
 		if current ~= wanted then
 			pcall(C_CVar.SetTempCVar, m.cvar, wanted)
 			current = GetCVarValue(m.cvar)
@@ -327,14 +333,63 @@ local function RevertCursor()
 	for _, c in ipairs(CURSOR_CVARS) do
 		pcall(C_CVar.RemoveTempCVar, c.name)
 	end
+	for _, cvar in ipairs(CURSOR_CLICK_CVARS) do
+		pcall(C_CVar.RemoveTempCVar, cvar)
+	end
 end
 
-local function ApplyCursor()
+-- Confirmed in game (2026-11-19, /ccp debug listen): a button that is a gamepad cursor click
+-- (Forever default: R2 = left click, R1 = right click) is NOT emulated as a modifier, even while the
+-- cursor is off - R1 = CTRL and R2 = SHIFT never reached the bindings, L1 = ALT did. So while the
+-- cursor is kept off, a click CVar that points at a modifier button is moved away from it
+-- (temporarily: "none", or an unused button index). Returns true when a click CVar was changed.
+local CLICK_REPLACEMENTS = { "none", "PAD6", "PAD5" }
+
+local function ApplyCursorClicks(profile, result)
+	local isModifier = {}
+	for _, m in ipairs(ns.MODIFIERS) do
+		local key = profile.modifiers[m.id]
+		if key and key ~= "none" then
+			isModifier[key] = true
+		end
+	end
+	local changed, used = false, {}
+	for _, cvar in ipairs(CURSOR_CLICK_CVARS) do
+		pcall(C_CVar.RemoveTempCVar, cvar) -- start from the player's own setting every time
+		local current = GetCVarValue(cvar)
+		if current ~= nil and isModifier[current] then
+			changed = true
+			local wanted
+			for _, candidate in ipairs(CLICK_REPLACEMENTS) do
+				if not isModifier[candidate] and not used[candidate] then
+					pcall(C_CVar.SetTempCVar, cvar, candidate)
+					if GetCVarValue(cvar) == candidate then
+						wanted = candidate
+						break
+					end
+				end
+			end
+			local actual = GetCVarValue(cvar)
+			local ok = actual ~= nil and not isModifier[actual]
+			result.cvars[cvar] = { wanted = wanted or "none", actual = Safe(actual), ok = ok }
+			result.ok = result.ok and ok
+		end
+		local final = GetCVarValue(cvar)
+		if final and final ~= "none" then
+			used[final] = true
+		end
+	end
+	return changed
+end
+
+-- Returns the result table and whether a cursor click button was moved off a modifier.
+local function ApplyCursor(profile)
 	if not Engine.KeepCursorOff() then
 		RevertCursor()
-		return nil
+		return nil, false
 	end
 	local result = { ok = true, cvars = {} }
+	local clicksChanged = ApplyCursorClicks(profile, result)
 	for _, c in ipairs(CURSOR_CVARS) do
 		local current = GetCVarValue(c.name)
 		if current ~= nil then -- unknown CVar in this client: nothing to do
@@ -347,7 +402,7 @@ local function ApplyCursor()
 			result.ok = result.ok and ok
 		end
 	end
-	return result
+	return result, clicksChanged
 end
 
 -- Modifier buttons that are also click buttons of the gamepad cursor: { { modifier, key }, ... }
@@ -401,8 +456,10 @@ function Engine.Apply(reason)
 		state.status = "paused (Blizzard gamepad UI)"
 	else
 		local profile = Profiles.Active()
-		state.modifiers = ApplyModifiers(profile.modifiers)
-		state.cursor = ApplyCursor()
+		-- cursor clicks first: a click button cannot be an emulated modifier (see ApplyCursorClicks)
+		local clicksChanged
+		state.cursor, clicksChanged = ApplyCursor(profile)
+		state.modifiers = ApplyModifiers(profile.modifiers, clicksChanged)
 		local expected = {} -- key -> binding string the client should report for it
 		for key, action in pairs(profile.bindings) do
 			if type(action) == "table" and action.type == "click" then

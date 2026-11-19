@@ -135,16 +135,27 @@ ok(tempcvars.GamePadCursorAutoEnable == "0" and C_CVar.GetCVar("GamePadCursorAut
 ok(tempcvars.GamePadCursorAutoDisableSticks == "2", "stick input always turns the cursor off")
 ok(tempcvars.GamePadCursorAutoDisableJump == nil, "jump setting already right: left alone")
 ok(db.lastApply.cursor and db.lastApply.cursor.ok and db.lastApply.cursor.cvars.GamePadCursorAutoDisableSticks.ok, "cursor state recorded")
+-- confirmed in game: a cursor click button is not emulated as a modifier -> move the click off it
+ok(tempcvars.GamePadCursorLeftClick == "none" and db.lastApply.cursor.cvars.GamePadCursorLeftClick.ok, "R2 is CTRL here: its cursor left click is moved off (temporary)")
+ok(tempcvars.GamePadCursorRightClick == nil, "R1 is not a modifier here: right click left alone")
+ok(C_CVar.GetCVar("GamePadEmulateCtrl") == "PADRTRIGGER" and db.lastApply.modifiers.CTRL.ok, "CTRL emulation set again after freeing the button")
+local realSet = C_CVar.SetTempCVar
+C_CVar.SetTempCVar = function(n, v) if n:find("GamePadCursor.*Click") and v == "none" then return end realSet(n, v) end
+ns.Engine.Apply("test")
+ok(tempcvars.GamePadCursorLeftClick == "PAD6", "client refuses 'none' -> an unused button index instead")
+C_CVar.SetTempCVar = realSet
+ns.Engine.Apply("test")
 ok(cf.cursorCheck.checked == true and cf.pages.settings.cursorNote.text:find("mouse"), "cursor checkbox on, explained")
 ok(not cf.compat.text:find("gamepad cursor click"), "no conflict warning while the cursor is kept off")
 cf.cursorCheck.checked = false cf.cursorCheck.scripts.OnClick(cf.cursorCheck)
 ok(db.keepCursorOff == false and tempcvars.GamePadCursorAutoEnable == nil and C_CVar.GetCVar("GamePadCursorAutoEnable") == "1", "unchecking gives the cursor back to the game")
+ok(tempcvars.GamePadCursorLeftClick == nil and C_CVar.GetCVar("GamePadCursorLeftClick") == "PADRTRIGGER", "cursor clicks back to the player's setting")
 ok(cf.compat.text:find("R2: modifier and also a gamepad cursor click"), "R2 (CTRL) flagged as cursor click: " .. tostring(cf.compat.text))
 ok(cf.pages.settings.cursorNote.text:find("R2"), "settings page shows the conflict")
 SlashCmdList.CHARACTERCONTROLPAD("cursor off")
 ok(db.keepCursorOff == true and tempcvars.GamePadCursorAutoEnable == "0", "/ccp cursor off")
 SlashCmdList.CHARACTERCONTROLPAD("off")
-ok(tempcvars.GamePadCursorAutoEnable == nil and tempcvars.GamePadCursorAutoDisableSticks == nil, "disabling CharacterControlPad restores the cursor settings")
+ok(tempcvars.GamePadCursorAutoEnable == nil and tempcvars.GamePadCursorAutoDisableSticks == nil and tempcvars.GamePadCursorLeftClick == nil, "disabling CharacterControlPad restores the cursor settings")
 SlashCmdList.CHARACTERCONTROLPAD("on")
 ok(tempcvars.GamePadCursorAutoEnable == "0" and tempcvars.GamePadCursorAutoDisableSticks == "2", "enabling keeps it off again")
 
