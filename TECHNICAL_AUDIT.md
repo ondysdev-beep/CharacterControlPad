@@ -661,7 +661,7 @@ Požadavek hráče: procházet inventář šipkami nebo touchpadem a potvrzovat 
 - **Repozitář:** GitHub `ondysdev-beep/CharacterControlPad` (veřejný kód, schváleno uživatelem 2026-11-19). CurseForge projekt `1815571` (`## X-Curse-Project-ID` v TOC).
 - **Workflow:** `.github/workflows/release.yml` se spustí při tagu `v*`. Udělá `npm ci`, `npm test` a pak spustí `BigWigsMods/packager@v2`.
   - `.pkgmeta`: `package-as: CharacterControlPad` a `move-folders: CharacterControlPad/CharacterControlPad: CharacterControlPad`. Addon leží v podsložce a vývojové soubory jsou v `ignore`.
-  - Packager najde TOC přes `toc_root_paths` z `move-folders` (release.sh). `-t podsložka` použít nejde, protože packager vyžaduje `.git` v horní složce.
+  - Packager najde TOC přes `toc_root_paths` z `move-folders` (release.sh). `-t podsložka` použít nejde, protože packager vyžaduje `.git` v horní složce. První běh na tom selhal („No Git, SVN, or Hg checkout found“), a proto workflow spouští packager v kořeni repozitáře.
 - **Verze hry:** `## Interface: 16001` packager mapuje na WoW: Forever 1.60.1 (podle hlášení jiných autorů). Tag s `alpha` / `beta` se nahraje jako alpha / beta.
 - **Secret:** `CF_API_KEY` (token CurseForge) je v nastavení repozitáře a nikdy v kódu.
 - **NOT CONFIRMED:** první běh workflow (lokální zkušební běh packageru nebyl v tomto prostředí povolený).
