@@ -1,5 +1,5 @@
 -- CharacterControlPad - static data
--- DualSense buttons (CONFIRMED via /ccp identify, TECHNICAL_AUDIT.md 10.1),
+-- DualSense buttons (confirmed in game with /ccp debug identify),
 -- Blizzard action bars (CONFIRMED in Blizzard_ActionBar/Shared/MultiActionBars.xml, forever branch),
 -- command catalog and the default profile.
 
