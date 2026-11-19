@@ -37,5 +37,9 @@ jobs:
           npm test
 
       # Runs at the repository root; .pkgmeta moves the CharacterControlPad folder into the package.
+      # -n: file name CharacterControlPad-<tag>.zip and upload label <tag> (without the "-forever"
+      # suffix the packager adds by default; the game version 1.60.1 is set on the file anyway).
       - name: Package and upload
         uses: BigWigsMods/packager@v2
+        with:
+          args: -n "{package-name}-{project-version}:{project-version}"
