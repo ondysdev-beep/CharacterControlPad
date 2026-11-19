@@ -43,6 +43,9 @@ function Panel.Refresh()
 	local s = Context.Settings()
 	checks.enabled:SetChecked(s.enabled)
 	checks.hints:SetChecked(s.hints)
+	for _, b in ipairs(frame.confirmButtons) do
+		ns.SetFlatSelected(b, b.key == s.confirm)
+	end
 	for _, group in ipairs(Context.GROUPS) do
 		checks[group]:SetChecked(not s.off[group])
 		if s.enabled then
@@ -78,14 +81,29 @@ function Panel.Build(parent)
 		Changed()
 	end)
 
+	-- confirm button (use the selected item, take loot, confirm a quest option, place ...)
+	local confirmLabel = ns.CreateText(frame, "GameFontNormal", 0, -100)
+	confirmLabel:SetText(L.CTX_CONFIRM_LABEL)
+	frame.confirmButtons = {}
+	for i, key in ipairs(Context.CONFIRM_KEYS) do
+		local b = ns.CreateFlatButton(frame, ns.buttonByKey[key].label, 110, 24)
+		b:SetPoint("TOPLEFT", frame, "TOPLEFT", 170 + (i - 1) * 114, -94)
+		b.key = key
+		b:SetScript("OnClick", function(self)
+			Context.Settings().confirm = self.key
+			Changed()
+		end)
+		frame.confirmButtons[i] = b
+	end
+
 	local divider = frame:CreateTexture(nil, "ARTWORK")
-	divider:SetPoint("TOPLEFT", frame, "TOPLEFT", 0, -98)
+	divider:SetPoint("TOPLEFT", frame, "TOPLEFT", 0, -126)
 	divider:SetSize(2 * COLUMN - 10, 1)
 	divider:SetColorTexture(1, 1, 1, 0.1)
 
 	for i, group in ipairs(Context.GROUPS) do
 		local col, row = (i - 1) % 2, math.floor((i - 1) / 2)
-		local cb = CreateCheck(frame, Context.GroupLabel(group), L["CTX_DESC_" .. group:upper()], col * COLUMN, -108 - row * 60)
+		local cb = CreateCheck(frame, Context.GroupLabel(group), L["CTX_DESC_" .. group:upper()], col * COLUMN, -132 - row * 48)
 		cb:SetScript("OnClick", function(self)
 			Context.Settings().off[group] = (not self:GetChecked()) or nil
 			Changed()
@@ -93,7 +111,7 @@ function Panel.Build(parent)
 		checks[group] = cb
 	end
 
-	local note = ns.CreateText(frame, "GameFontDisableSmall", 0, -356, 2 * COLUMN - 10)
+	local note = ns.CreateText(frame, "GameFontDisableSmall", 0, -378, 2 * COLUMN - 10)
 	note:SetText(L.CTX_NOTE)
 
 	frame:SetScript("OnShow", Panel.Refresh)

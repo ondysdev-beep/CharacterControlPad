@@ -309,6 +309,57 @@ ok(CharacterControlPadContextPAD3.attributes.clickbutton == bagItem, "bank: Squa
 BankFrame.shown = false mouseFocus = nil refresh()
 ok(layers[ctxOwner()] == nil, "all closed -> no layer")
 
+---------------- bags (D-pad selection, confirm button) ----------------
+local bagFrame = Plain({ GetBagID = function() return 0 end, GetBagSize = function() return 5 end })
+local function bagBtn(x, y) return Plain({ parent = bagFrame, GetBagID = function() return 0 end, GetID = function() return 1 end, GetCenter = function() return x, y end }) end
+local items = { bagBtn(100, 300), bagBtn(140, 300), bagBtn(100, 260), bagBtn(140, 260), bagBtn(180, 260) }
+bagFrame.Items = items
+ContainerFrameCombinedBags = bagFrame
+local function sel() return CharacterControlPadContextPAD1.attributes.clickbutton end
+local function press(dir) local b = _G["CharacterControlPadContextFnPADD" .. dir] b.scripts.OnClick(b) end
+bagsOpen = true mouseFocus = nil refresh()
+ok(effective("PAD1") == "CLICK CharacterControlPadContextPAD1:RightButton" and sel() == items[1], "bags: Cross uses the top-left item (right click)")
+ok(CharacterControlPadContextHighlight.shown and CharacterControlPadContextHighlight.allPoints == items[1], "bag selection highlighted")
+ok(effective("PADDRIGHT") == "CLICK CharacterControlPadContextFnPADDRIGHT:LeftButton" and effective("PADDLEFT") == "CLICK CharacterControlPadContextFnPADDLEFT:LeftButton", "D-pad left/right move in the bags")
+press("RIGHT") ok(sel() == items[2], "Right -> next item in the row")
+press("DOWN") ok(sel() == items[4], "Down -> item below")
+press("LEFT") ok(sel() == items[3], "Left")
+press("UP") ok(sel() == items[1], "Up")
+press("UP") ok(sel() == items[1], "no item above -> selection stays")
+ok(ForeverPadTooltip == nil and CharacterControlPadTooltip ~= nil, "tooltip of the selected item uses the private tooltip")
+ok(CharacterControlPadContextHints.text.text:find("Use", 1, true) and CharacterControlPadContextHints.text.text:find("D-pad", 1, true), "bag hint: " .. CharacterControlPadContextHints.text.text)
+mouseFocus = items[5] refresh()
+ok(sel() == items[5], "item hovered with the mouse / touchpad becomes the selection")
+press("LEFT")
+ok(sel() == items[4], "D-pad still moves while the mouse rests on an item")
+mouseFocus = nil
+SlashCmdList.CHARACTERCONTROLPAD("context confirm square") refresh()
+ok(ns.db.context.confirm == "PAD3" and effective("PAD3") == "CLICK CharacterControlPadContextPAD3:RightButton" and effective("PAD1") == "ACTIONBUTTON1", "confirm button = Square")
+SlashCmdList.CHARACTERCONTROLPAD("context confirm options") refresh()
+ok(ns.db.context.confirm == "PAD3", "only Cross / Square / Triangle can confirm")
+SlashCmdList.CHARACTERCONTROLPAD("context confirm cross")
+MerchantFrame.shown = true refresh()
+ok(effective("PAD3") == "CLICK CharacterControlPadContextPAD3:RightButton" and CharacterControlPadContextPAD3.attributes.clickbutton == items[4] and effective("PAD1") == "ACTIONBUTTON1", "at a merchant Square sells the selected bag item")
+MerchantFrame.shown = false refresh()
+
+---------------- placing (ground targeting) ----------------
+SpellIsTargeting = function() return true end refresh()
+ok(effective("PAD1") == "CAMERAORSELECTORMOVE" and effective("PAD2") == "TOGGLEGAMEMENU", "placing: Cross clicks in the world, Circle cancels")
+ok(CharacterControlPadContextHints.anchorTo == UIParent and CharacterControlPadContextHints.text.text:find("Place", 1, true), "placing hint on screen")
+SpellIsTargeting = function() return false end
+bagsOpen = false bagFrame.shown = false refresh()
+ok(layers[ctxOwner()] == nil and not CharacterControlPadContextHighlight.shown, "bags closed -> no layer, no selection")
+
+---------------- loot with Square as the confirm button ----------------
+SlashCmdList.CHARACTERCONTROLPAD("context confirm square")
+e1.shown, e2.shown, e3.shown = true, true, true
+LootFrame.shown = true looted = {} refresh()
+ok(effective("PAD3") == "CLICK CharacterControlPadContextFnPAD3:LeftButton" and effective("PAD1") == "CLICK CharacterControlPadContextFnPAD1:LeftButton", "loot: Square takes, Cross takes all")
+CharacterControlPadContextFnPAD3.scripts.OnClick(CharacterControlPadContextFnPAD3)
+ok(#looted == 1 and looted[1] == 1, "Square took the selected item")
+LootFrame.shown = false refresh()
+SlashCmdList.CHARACTERCONTROLPAD("context confirm cross")
+
 ---------------- panel ----------------
 SlashCmdList.CHARACTERCONTROLPAD("")
 local cf = CharacterControlPadConfigFrame
@@ -335,6 +386,11 @@ master.checked = true master.scripts.OnClick(master)
 local hintCheck = check("Show button hints under the window")
 hintCheck.checked = false hintCheck.scripts.OnClick(hintCheck)
 ok(ns.db.context.hints == false and not CharacterControlPadContextHints.shown, "hints can be hidden")
+local cbs = cp.confirmButtons
+ok(#cbs == 3 and cbs[1].text == "Cross" and cbs[1].selected and not cbs[2].selected, "confirm button choice: Cross selected")
+cbs[3].scripts.OnClick(cbs[3])
+ok(ns.db.context.confirm == "PAD4" and cbs[3].selected and not cbs[1].selected, "choosing Triangle as the confirm button")
+cbs[1].scripts.OnClick(cbs[1])
 LootFrame.shown = false refresh()
 
 ---------------- locale ----------------

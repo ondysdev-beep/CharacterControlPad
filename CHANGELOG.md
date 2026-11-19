@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.14.0 - 2026-11-19
+- Bags with the controller: while a bag is open, the D-pad moves a gold frame over your items (as
+  they lie on screen) and the confirm button uses the selected item like a right-click (scrolls,
+  food, gear, containers). The item's tooltip is shown. An item hovered with the mouse or the
+  touchpad becomes the selection. At a merchant Square sells the selected item, at the bank it
+  moves it.
+- Placing things on the ground (campfire, ground-targeted spells and items): move the circle with
+  the touchpad or the mouse, the confirm button places it, Circle cancels.
+- Choose the confirm button (Cross, Square or Triangle) on the Windows tab or with
+  `/ccp context confirm square`. It is used for bags, loot, quests and NPC dialogs and placing.
+- Automatic releases: a version tag on GitHub uploads the addon to CurseForge as a WoW: Forever file.
+
 ## 0.13.0 - 2026-11-18
 - Renamed from ForeverPad to **CharacterControlPad** (CCP), because another addon called ForeverPad
   already exists. New folder `CharacterControlPad`, new command **`/ccp`** (also `/charactercontrolpad`).

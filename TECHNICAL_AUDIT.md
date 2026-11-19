@@ -1,7 +1,7 @@
 # CharacterControlPad – Technický audit (Fáze 0)
 
 **Datum:** 2026-11-18
-**Stav:** Fáze 0–4 jsou ověřené ve hře (kapitoly 9 a 10). Fáze 5, konfigurátor, kontextové ovládání oken a nové okno nastavení (v0.3–0.13.0) jsou hotové a otestované mimo hru (260+ testů, `npm test`). Čeká se na souhrnný test ve hře (kapitola 11).
+**Stav:** Fáze 0–4 jsou ověřené ve hře (kapitoly 9 a 10). Fáze 5, konfigurátor, kontextové ovládání oken a nové okno nastavení (v0.3–0.14.0) jsou hotové a otestované mimo hru (300+ testů, `npm test`). Čeká se na souhrnný test ve hře (kapitola 11).
 
 Značení podle zadání:
 
@@ -636,6 +636,35 @@ Na CurseForge už existuje jiný addon pro WoW: Forever se stejným názvem (For
 - **Starší kapitoly** tohoto auditu vznikly pod starým názvem. Ten je v nich nahrazen novým.
 - **Migrace dat:** SavedVariables se načítají podle názvu složky, takže starý soubor `ForeverPad.lua` nový addon sám nenačte. Hráč ho přejmenuje na `CharacterControlPad.lua`. `ns.LegacyData()` (Core.lua) pak převezme globální `ForeverPadDB`, pokud má tvar našich dat (`profiles` s `bindings` a `modifiers`, `characters`) a `CharacterControlPadDB` ještě neexistuje. Data cizího addonu se stejným názvem proměnné se ignorují a nikdy se nemažou.
 - **NOT CONFIRMED (ve hře):** klient při načtení SavedVariables nastaví i nedeklarovanou globální proměnnou `ForeverPadDB` ze souboru. Pokud ne, stačí v přejmenovaném souboru změnit první řádek na `CharacterControlPadDB = {`.
+
+### 11.17 Batohy, umisťování a potvrzovací tlačítko (v0.14.0)
+
+Požadavek hráče: procházet inventář šipkami nebo touchpadem a potvrzovat vybranou věc. Příklady: svitek se rovnou použije, ohniště se vybere a touchpadem umístí do světa.
+
+- **Batohy (skupina `bags`):** zdroj `Blizzard_UIPanels_Game/Mainline/ContainerFrame.lua` (větev `forever`).
+  - Předměty jsou `container.Items[1 .. GetBagSize()]` v `ContainerFrameCombinedBags` a v `ContainerFrameContainer.ContainerFrames`.
+  - D-pad ↑↓←→ vybírá podle polohy na obrazovce (`GetCenter`, nejbližší ve směru s penalizací odchylky). Výběr začíná vlevo nahoře.
+  - Potvrzovací tlačítko = pravý klik přes stejný bezpečný proxy (`SecureActionButtonTemplate`, `type = click`) jako prodej u obchodníka. Blizzard `ContainerFrameItemButton_OnClick` pak zavolá `C_Container.UseContainerItem` neposkvrněně.
+  - U obchodníka a v bance je místo potvrzovacího tlačítka Čtverec (prodat / přesunout), stejně jako u předmětu pod myší.
+  - Předmět pod myší nebo pod kurzorem z touchpadu (`GamePadTouchCursorEnable = 2` je výchozí hodnota Forever) se stane výběrem, když na něj kurzor přejede. D-pad pak pokračuje od něj.
+  - Popisek vybraného předmětu ukazuje soukromý tooltip (`SetBagItem`).
+- **Umisťování (skupina `placing`):** dokud `SpellIsTargeting()`, je potvrzovací tlačítko svázané s příkazem `CAMERAORSELECTORMOVE` (levé tlačítko myši ve světě, na místě kurzoru) a Kolečko s `TOGGLEGAMEMENU` (řetězec Esc zruší cílení přes `SpellStopTargeting`). Nápověda se ukazuje nahoře uprostřed obrazovky.
+- **Potvrzovací tlačítko:** `ns.db.context.confirm` = `PAD1` / `PAD3` / `PAD4` (Křížek / Čtverec / Trojúhelník, výchozí Křížek). Používá se pro batohy, kořist (vybraný předmět), questy a rozhovory s NPC a umisťování. „Sebrat vše“ u kořisti je Čtverec, a když potvrzuje Čtverec, tak Křížek. Volba je v záložce Okna a v `/ccp context confirm <tlačítko>`.
+- **NOT CONFIRMED (ve hře):**
+  - pravý klik přes proxy použije předmět v batohu (u obchodníka ověřen prodej, `v0.11.2`);
+  - `CAMERAORSELECTORMOVE` na tlačítku ovladače potvrdí umístění na místě kurzoru;
+  - touchpad hýbe kurzorem myši v rozhraní pro myš a klávesnici a `GetMouseFoci` pak vrací předmět v batohu;
+  - pořadí a pohyb výběru odpovídají rozložení batohů.
+
+### 11.18 Automatické vydávání (v0.14.0)
+
+- **Repozitář:** GitHub `ondysdev-beep/CharacterControlPad` (veřejný kód, schváleno uživatelem 2026-11-19). CurseForge projekt `1815571` (`## X-Curse-Project-ID` v TOC).
+- **Workflow:** `.github/workflows/release.yml` se spustí při tagu `v*`. Udělá `npm ci`, `npm test` a pak spustí `BigWigsMods/packager@v2`.
+  - `.pkgmeta`: `package-as: CharacterControlPad` a `move-folders: CharacterControlPad/CharacterControlPad: CharacterControlPad`. Addon leží v podsložce a vývojové soubory jsou v `ignore`.
+  - Packager najde TOC přes `toc_root_paths` z `move-folders` (release.sh). `-t podsložka` použít nejde, protože packager vyžaduje `.git` v horní složce.
+- **Verze hry:** `## Interface: 16001` packager mapuje na WoW: Forever 1.60.1 (podle hlášení jiných autorů). Tag s `alpha` / `beta` se nahraje jako alpha / beta.
+- **Secret:** `CF_API_KEY` (token CurseForge) je v nastavení repozitáře a nikdy v kódu.
+- **NOT CONFIRMED:** první běh workflow (lokální zkušební běh packageru nebyl v tomto prostředí povolený).
 
 ---
 

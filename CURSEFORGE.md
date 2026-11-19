@@ -26,12 +26,14 @@ While a window is open, a few buttons temporarily do what fits it. When the wind
 | Merchant | **Cross** buys and **Square** sells the item under the cursor, **Triangle** repairs all, **Options** sells junk |
 | NPC dialogs and quests | **D-pad** chooses an option (highlighted), **Cross** accepts, continues or completes. After picking a reward, Cross completes the quest |
 | Loot | **D-pad** chooses an item, **Cross** takes it, **Square** takes everything |
+| Bags | **D-pad** moves over your items, **Cross** uses the selected one (scroll, food, gear, containers). The item under the mouse or touchpad works too |
+| Placing (campfire, ground-targeted spells) | move the circle with the **touchpad** or mouse, **Cross** places it, **Circle** cancels |
 | Dialogs (confirmations, ready check, dungeon queue, invitations) | **Cross** accepts, **Circle** declines |
 | Mail | **Cross** opens all mail |
 | Bank | **Square** moves the item under the cursor |
 | Trainer | **Cross** learns the selected skill |
 
-A hint line under the window shows which buttons do what. Every window type can be switched off on the **Windows** tab.
+**Cross** is the default **confirm button**. You can choose Square or Triangle instead. A hint line under the window shows which buttons do what. Every window type can be switched off on the **Windows** tab.
 
 ### Controller stays on your character
 The game normally switches to its own gamepad cursor when a window opens. The left stick then moves the cursor and R1 / R2 click, which breaks movement and modifier combos. CharacterControlPad keeps that automatic cursor off, so the stick stays on your character and R1 / R2 stay modifiers. If the cursor still gets turned on, moving a stick or jumping always turns it off, and a short hint on screen tells you so. This setting is temporary and can be switched back with one click.

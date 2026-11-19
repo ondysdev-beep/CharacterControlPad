@@ -5,8 +5,11 @@
 --               Triangle repairs everything, Options sells all junk
 --   NPC/quests  D-pad Up/Down chooses an option, Cross confirms (accept / continue / complete)
 --   dialogs     Cross accepts, Circle declines (popups, ready check, dungeon queue, role check)
---   loot        D-pad Up/Down chooses an item, Cross takes it, Square takes everything
+--   loot        D-pad Up/Down chooses an item, confirm takes it, Square takes everything
+--   bags        D-pad moves over the items, confirm uses the selected one (like a right click)
+--   placing     confirm places what is being placed (campfire ...) at the cursor, Circle cancels
 --   mail        Cross opens all mail;  bank: Square moves the hovered item;  trainer: Cross trains
+-- "confirm" = the button the player chose on the Windows tab (Cross by default).
 --
 -- How it stays safe:
 --   * the layer is a separate set of *priority* override bindings on its own owner frame, so the
@@ -28,12 +31,16 @@ ns.Context = Context
 
 local KEY = {
 	CROSS = "PAD1", CIRCLE = "PAD2", SQUARE = "PAD3", TRIANGLE = "PAD4",
-	OPTIONS = "PADFORWARD", UP = "PADDUP", DOWN = "PADDDOWN",
+	OPTIONS = "PADFORWARD", UP = "PADDUP", DOWN = "PADDDOWN", LEFT = "PADDLEFT", RIGHT = "PADDRIGHT",
 }
 Context.KEY = KEY
 
 -- Order = order in the settings panel.
-Context.GROUPS = { "close", "popup", "merchant", "quest", "loot", "mail", "bank", "trainer" }
+Context.GROUPS = { "close", "popup", "bags", "placing", "merchant", "quest", "loot", "mail", "bank", "trainer" }
+
+-- Buttons the player may choose as "confirm" (use the selected item, take the selected loot,
+-- confirm a quest option, place a campfire ...).
+Context.CONFIRM_KEYS = { KEY.CROSS, KEY.SQUARE, KEY.TRIANGLE }
 
 local REFRESH_INTERVAL = 0.1
 
@@ -42,6 +49,8 @@ local proxies, funcButtons = {}, {}
 local bound = {} -- key -> signature of what is bound now
 local highlight, hintFrame
 local nav = { list = {}, index = 1, signature = "" }
+local bag = { selected = nil, lastHover = nil } -- D-pad selection in the bags
+local tipTarget -- bag item whose tooltip the addon shows
 
 ------------------------------------------------------------------------
 -- Settings (account wide): CharacterControlPadDB.context = { enabled, hints, off = { [group] = true } }
@@ -57,7 +66,34 @@ function Context.Settings()
 		s.hints = true
 	end
 	s.off = type(s.off) == "table" and s.off or {}
+	local valid = false
+	for _, key in ipairs(Context.CONFIRM_KEYS) do
+		if s.confirm == key then
+			valid = true
+		end
+	end
+	if not valid then
+		s.confirm = KEY.CROSS
+	end
 	return s
+end
+
+function Context.ConfirmKey()
+	return Context.Settings().confirm
+end
+
+function Context.IsConfirmKey(key)
+	for _, k in ipairs(Context.CONFIRM_KEYS) do
+		if k == key then
+			return true
+		end
+	end
+	return false
+end
+
+-- "Take everything" in the loot window: Square, or Cross when Square is the confirm button.
+function Context.AllKey()
+	return Context.ConfirmKey() == KEY.SQUARE and KEY.CROSS or KEY.SQUARE
 end
 
 function Context.IsGroupOn(group)
@@ -287,6 +323,87 @@ local function LootList()
 	return ByTop(list)
 end
 
+-- Bag item buttons on screen (Blizzard_UIPanels_Game/Mainline/ContainerFrame.lua): the combined
+-- backpack and the separate bag frames keep their slots in container.Items[1 .. GetBagSize()].
+local function BagList()
+	local list = {}
+	local function Add(container)
+		if not Shown(container) or type(container.GetBagSize) ~= "function" then
+			return
+		end
+		local items = rawget(container, "Items")
+		local ok, size = pcall(container.GetBagSize, container)
+		if type(items) ~= "table" or not ok or type(size) ~= "number" then
+			return
+		end
+		for i = 1, size do
+			local b = items[i]
+			if type(b) == "table" and Visible(b) then
+				list[#list + 1] = b
+			end
+		end
+	end
+	Add(Frame("ContainerFrameCombinedBags"))
+	local holder = Frame("ContainerFrameContainer")
+	local frames = holder and rawget(holder, "ContainerFrames")
+	if type(frames) == "table" then
+		for _, f in ipairs(frames) do
+			Add(f)
+		end
+	end
+	return list
+end
+Context.BagList = BagList
+
+local function Center(f)
+	if type(f) ~= "table" or type(f.GetCenter) ~= "function" then
+		return nil
+	end
+	local ok, x, y = pcall(f.GetCenter, f)
+	if ok and type(x) == "number" and type(y) == "number" then
+		return x, y
+	end
+	return nil
+end
+
+local DIRECTIONS = { left = { -1, 0 }, right = { 1, 0 }, up = { 0, 1 }, down = { 0, -1 } }
+
+-- Nearest button in a screen direction from "from" (straight lines preferred over diagonals).
+function Context.Neighbor(list, from, direction)
+	local fx, fy = Center(from)
+	local d = DIRECTIONS[direction]
+	if not fx or not d then
+		return nil
+	end
+	local best, bestScore
+	for _, b in ipairs(list) do
+		local x, y = Center(b)
+		if b ~= from and x then
+			local dx, dy = x - fx, y - fy
+			local along = dx * d[1] + dy * d[2]
+			if along > 1 then
+				local score = along + 3 * math.abs(dx * d[2] + dy * d[1])
+				if not bestScore or score < bestScore then
+					best, bestScore = b, score
+				end
+			end
+		end
+	end
+	return best
+end
+
+-- Top-left item (highest row, then leftmost).
+local function FirstItem(list)
+	local best, bx, by
+	for _, b in ipairs(list) do
+		local x, y = Center(b)
+		if x and (not best or y > by + 4 or (math.abs(y - by) <= 4 and x < bx)) then
+			best, bx, by = b, x, y
+		end
+	end
+	return best or list[1]
+end
+
 -- keep = after the list changes, stay at the same position (the next entry) instead of the default
 local function UseList(list, defaultIndex, keep)
 	local sig = tostring(#list) .. ":" .. tostring(list[1]) .. ":" .. tostring(list[#list])
@@ -435,26 +552,116 @@ local function NavButtons(c, anchor)
 	c.Hint(KEY.UP, L.CTX_CHOOSE, anchor)
 end
 
--- D-pad chooses an item, Cross takes it, Square takes everything (Circle closes, see "close").
+-- D-pad chooses an item, the confirm button takes it, Square (or Cross) takes everything.
 CONTEXTS.loot = function(c)
 	if not Shown("LootFrame") then
 		return
 	end
 	local list = LootList()
+	local confirm, all = Context.ConfirmKey(), Context.AllKey()
 	if not list or #list == 0 then
 		-- no item list available (other loot UI, or only coins being animated out): take everything
-		c.Claim(KEY.CROSS, { kind = "func", fn = LootAll, label = L.CTX_LOOT_ALL })
-		c.Hint(KEY.CROSS, L.CTX_LOOT_ALL, "LootFrame")
+		c.Claim(confirm, { kind = "func", fn = LootAll, label = L.CTX_LOOT_ALL })
+		c.Hint(confirm, L.CTX_LOOT_ALL, "LootFrame")
 		return
 	end
 	c.navTarget = UseList(list, 1, true)
-	c.Claim(KEY.CROSS, { kind = "func", fn = LootSelected, label = L.CTX_LOOT_ONE, sig = "loot-selected" })
-	c.Hint(KEY.CROSS, L.CTX_LOOT_ONE, "LootFrame")
-	c.Claim(KEY.SQUARE, { kind = "func", fn = LootAll, label = L.CTX_LOOT_ALL })
-	c.Hint(KEY.SQUARE, L.CTX_LOOT_ALL)
+	c.Claim(confirm, { kind = "func", fn = LootSelected, label = L.CTX_LOOT_ONE, sig = "loot-selected" })
+	c.Hint(confirm, L.CTX_LOOT_ONE, "LootFrame")
+	c.Claim(all, { kind = "func", fn = LootAll, label = L.CTX_LOOT_ALL })
+	c.Hint(all, L.CTX_LOOT_ALL)
 	if #list > 1 then
 		NavButtons(c)
 	end
+end
+
+-- Placing something on the ground (campfire, ground-targeted spells and items): the confirm button
+-- acts as a left click in the world at the cursor (moved with the touchpad or the mouse), Circle
+-- cancels (Esc chain: SpellStopTargeting).
+CONTEXTS.placing = function(c)
+	if type(SpellIsTargeting) ~= "function" then
+		return
+	end
+	local ok, targeting = pcall(SpellIsTargeting)
+	if not ok or not targeting then
+		return
+	end
+	local confirm = Context.ConfirmKey()
+	c.Claim(confirm, { kind = "command", command = "CAMERAORSELECTORMOVE", label = L.CTX_PLACE })
+	c.Hint(confirm, L.CTX_PLACE, UIParent)
+	c.Claim(KEY.CIRCLE, { kind = "command", command = "TOGGLEGAMEMENU", label = L.CTX_CANCEL })
+	c.Hint(KEY.CIRCLE, L.CTX_CANCEL)
+end
+
+function Context.MoveBag(direction)
+	local nextItem = Context.Neighbor(BagList(), bag.selected, direction)
+	if nextItem then
+		bag.selected = nextItem
+	end
+	Context.Refresh()
+end
+
+local function BagAnchor()
+	if Shown("ContainerFrameCombinedBags") then
+		return ContainerFrameCombinedBags
+	end
+	local holder = Frame("ContainerFrameContainer")
+	local frames = holder and rawget(holder, "ContainerFrames")
+	if type(frames) == "table" then
+		for _, f in ipairs(frames) do
+			if Shown(f) then
+				return f
+			end
+		end
+	end
+	return nil
+end
+
+-- Bags: the D-pad moves a selection over the items as they lie on screen; the confirm button acts
+-- like a right click (use, equip, open). At a merchant / the bank, Square sells / moves the
+-- selected item instead (same button as for the hovered item). An item hovered with the mouse or
+-- the touchpad (the touchpad moves the mouse cursor) becomes the selection.
+CONTEXTS.bags = function(c)
+	if c.navTarget then
+		return -- the loot or quest window already uses the D-pad
+	end
+	local list = BagList()
+	if #list == 0 then
+		bag.selected, bag.lastHover = nil, nil
+		return
+	end
+	local focus = Context.MouseFocus()
+	local hovered = (Context.IsBagItem(focus) and Visible(focus)) and focus or nil
+	if hovered and hovered ~= bag.lastHover then
+		bag.selected = hovered
+	end
+	bag.lastHover = hovered
+	local present = false
+	for _, b in ipairs(list) do
+		if b == bag.selected then
+			present = true
+		end
+	end
+	if not present then
+		bag.selected = FirstItem(list)
+	end
+	local target = bag.selected
+	c.navTarget = target
+	c.bagTip = (target ~= hovered) and target or nil
+
+	local key, label = Context.ConfirmKey(), L.CTX_USE
+	if Shown("MerchantFrame") then
+		key, label = KEY.SQUARE, L.CTX_SELL
+	elseif Shown("BankFrame") then
+		key, label = KEY.SQUARE, L.CTX_MOVE
+	end
+	local anchor = BagAnchor()
+	c.Claim(key, Click(target, label, "RightButton"))
+	c.Hint(key, label, anchor)
+	for direction, k in pairs({ up = KEY.UP, down = KEY.DOWN, left = KEY.LEFT, right = KEY.RIGHT }) do
+		c.Claim(k, { kind = "func", fn = function() Context.MoveBag(direction) end, label = L.CTX_CHOOSE, sig = "bag-" .. direction })
+	end
+	c.Hint(KEY.UP, L.CTX_CHOOSE, anchor)
 end
 
 CONTEXTS.merchant = function(c)
@@ -518,11 +725,11 @@ CONTEXTS.quest = function(c)
 	end
 	local target = UseList(list, default)
 	c.navTarget = target
-	c.Claim(KEY.CROSS, Click(target, L.CTX_SELECT))
+	c.Claim(Context.ConfirmKey(), Click(target, L.CTX_SELECT))
 	if #list > 1 then
 		NavButtons(c, anchor)
 	end
-	c.Hint(KEY.CROSS, L.CTX_SELECT, anchor)
+	c.Hint(Context.ConfirmKey(), L.CTX_SELECT, anchor)
 end
 
 CONTEXTS.close = function(c)
@@ -535,7 +742,7 @@ CONTEXTS.close = function(c)
 end
 
 -- Evaluation order (priority): dialogs over everything, then the window-specific actions, Circle last.
-local ORDER = { "popup", "loot", "merchant", "bank", "mail", "trainer", "quest", "close" }
+local ORDER = { "popup", "placing", "loot", "merchant", "bank", "mail", "trainer", "quest", "bags", "close" }
 
 function Context.Collect()
 	local c = Collector()
@@ -729,10 +936,42 @@ local function UpdateHints(c)
 	hintFrame:SetSize((type(w) == "number" and w or 300) + 20, 22)
 	if hintFrame.anchor ~= c.anchor then
 		hintFrame:ClearAllPoints()
-		hintFrame:SetPoint("TOP", c.anchor, "BOTTOM", 0, -4)
+		if c.anchor == UIParent then
+			hintFrame:SetPoint("TOP", UIParent, "TOP", 0, -180) -- no window (placing on the ground)
+		else
+			hintFrame:SetPoint("TOP", c.anchor, "BOTTOM", 0, -4)
+		end
 		hintFrame.anchor = c.anchor
 	end
 	hintFrame:Show()
+end
+
+-- Tooltip of the bag item selected with the D-pad (the mouse shows its own tooltip when hovering).
+local function UpdateBagTip(target)
+	if target == tipTarget then
+		return
+	end
+	local tt = ns.GetTooltip and ns.GetTooltip()
+	if not tt then
+		return
+	end
+	if tipTarget and not target then
+		tt:Hide()
+	end
+	tipTarget = target
+	if not target then
+		return
+	end
+	local okBag, bagID = pcall(target.GetBagID, target)
+	local okSlot, slot = pcall(target.GetID, target)
+	if okBag and okSlot and type(bagID) == "number" and type(slot) == "number" then
+		tt:SetOwner(target, "ANCHOR_RIGHT")
+		if pcall(tt.SetBagItem, tt, bagID, slot) then
+			ns.ShowTooltip()
+		else
+			tt:Hide()
+		end
+	end
 end
 
 ------------------------------------------------------------------------
@@ -774,6 +1013,7 @@ function Context.Refresh()
 	end
 	UpdateHighlight(c.navTarget)
 	UpdateHints(c)
+	UpdateBagTip(c.bagTip)
 end
 
 -- True while the context layer holds this key (the engine's conflict check ignores it then).
@@ -787,6 +1027,7 @@ function Context.Reset()
 	end
 	nav.list, nav.signature = {}, ""
 	UpdateHighlight(nil)
+	UpdateBagTip(nil)
 	if hintFrame then
 		hintFrame:Hide()
 	end
@@ -814,6 +1055,7 @@ ns.On("PLAYER_REGEN_DISABLED", function()
 	ClearLayer()
 	nav.list, nav.signature = {}, ""
 	UpdateHighlight(nil)
+	UpdateBagTip(nil)
 	if hintFrame then
 		hintFrame:Hide()
 	end
@@ -842,6 +1084,8 @@ ns.RegisterCommand("context", "context controls window; on | off | status | hint
 		s.enabled = (a == "on")
 	elseif a == "hints" and (b == "on" or b == "off") then
 		s.hints = (b == "on")
+	elseif a == "confirm" and ns.FindButton(b) and Context.IsConfirmKey(ns.FindButton(b).key) then
+		s.confirm = ns.FindButton(b).key
 	elseif CONTEXTS[a] and (b == "on" or b == "off") then
 		s.off[a] = (b == "off") or nil
 	else
@@ -849,8 +1093,10 @@ ns.RegisterCommand("context", "context controls window; on | off | status | hint
 		for _, group in ipairs(Context.GROUPS) do
 			list[#list + 1] = string.format("%s=%s", group, s.off[group] and "off" or "on")
 		end
-		ns.Printf("Context controls %s, hints %s. Groups: %s", s.enabled and "ON" or "OFF", s.hints and "on" or "off", table.concat(list, ", "))
-		ns.Print("/ccp context on | off | hints on|off | <group> on|off")
+		local confirm = ns.buttonByKey[s.confirm]
+		ns.Printf("Context controls %s, hints %s, confirm button %s. Groups: %s", s.enabled and "ON" or "OFF",
+			s.hints and "on" or "off", confirm and confirm.label or tostring(s.confirm), table.concat(list, ", "))
+		ns.Print("/ccp context on | off | hints on|off | confirm cross|square|triangle | <group> on|off")
 		return
 	end
 	Context.Refresh()

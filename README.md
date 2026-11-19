@@ -6,7 +6,7 @@ CharacterControlPad maps controller buttons and button combos to your normal Bli
 their layout and the Edit Mode stay exactly as you set them up. The keyboard and mouse keep working
 at the same time.
 
-> Status: **beta (0.13.x)**. Built for WoW: Forever 1.60.1 (interface 16001). Feedback welcome.
+> Status: **beta (0.14.x)**. Built for WoW: Forever 1.60.1 (interface 16001). Feedback welcome.
 
 ## Features
 
@@ -24,11 +24,17 @@ at the same time.
   - **NPC dialogs and quests:** the D-pad chooses and Cross accepts, continues or completes.
   - **Dialogs** (ready check, dungeon queue, invitations): Cross accepts, Circle declines.
   - **Loot:** the D-pad chooses an item, Cross takes it, Square takes everything.
+  - **Bags:** the D-pad moves over your items, Cross uses the selected one (like a right-click: use a
+    scroll, equip, open). The item under the mouse or the touchpad works too. At a merchant Square
+    sells it, at the bank Square moves it.
+  - **Placing** (campfire, ground-targeted spells): move the circle with the touchpad or the mouse,
+    Cross places it, Circle cancels.
   - **Other windows:** Cross opens all mail and learns at a trainer. At the bank, Square moves the
     item under the cursor.
 
-  A hint line under the window shows the buttons. Each part can be switched off on the **Windows**
-  tab of the settings window.
+  "Cross" above is the **confirm button**: you can choose Cross, Square or Triangle. A hint line
+  under the window shows the buttons. Each part can be switched off on the **Windows** tab of the
+  settings window.
 - **Profiles.** Each character remembers its own profile. You can create, copy, rename and delete profiles,
   and start a new one empty or from a template.
 - **First-run wizard.** Pick your modifiers, then choose between an empty layout and a template.
@@ -82,7 +88,7 @@ Copy the `CharacterControlPad` folder to
 | `/ccp unmap L1+Cross` | remove a combo |
 | `/ccp mod shift L1` | set modifier buttons (shift / ctrl / alt) |
 | `/ccp profile ...` | profiles: use, new, template, copy, rename, delete, reset |
-| `/ccp context` | context controls for windows (`on`, `off`, `status`, `hints on\|off`, `merchant off` ...) |
+| `/ccp context` | context controls for windows (`on`, `off`, `status`, `hints on\|off`, `confirm cross\|square\|triangle`, `merchant off` ...) |
 | `/ccp cursor on\|off` | `off` (default): the game never switches to its gamepad cursor, windows are used with the mouse |
 | `/ccp on` / `/ccp off` | enable / disable CharacterControlPad |
 | `/ccp lang en \| cs \| auto` | language |
@@ -102,6 +108,17 @@ Copy the `CharacterControlPad` folder to
 - CharacterControlPad (c) 2026 **Zap Bee**, released under the **MIT License** (see `LICENSE`).
 - Bundled font **Noto Sans** (c) The Noto Project Authors, **SIL Open Font License 1.1**
   (see `CharacterControlPad/Fonts/OFL.txt`). It is used only for the Czech interface.
+
+## Development and releases
+
+- `npm install` once, then `npm test` runs the offline checks (Lua syntax, globals, tests with
+  mocked WoW API). `npm run package` builds `dist/CharacterControlPad-<version>.zip` locally.
+- Releases are automatic: push a tag `v<version>` (for example `v0.14.0-beta`) to GitHub. The
+  workflow `.github/workflows/release.yml` runs the tests and the
+  [BigWigs packager](https://github.com/BigWigsMods/packager), which uploads the addon to
+  CurseForge (project id in the TOC, game version WoW: Forever from `## Interface: 16001`) and
+  creates a GitHub release. Tags with `alpha` / `beta` become alpha / beta files. The repository
+  secret `CF_API_KEY` holds the CurseForge API token.
 
 ---
 
@@ -129,6 +146,10 @@ Tlačítka a kombinace ovladače si namapuješ na své běžné action bary. Kl�
     Options prodá odpad.
   - **U NPC a questů** D-pad vybírá a Křížek potvrdí.
   - **U kořisti** D-pad vybírá předmět, Křížek ho sebere a Čtverec sebere všechno.
+  - **V batohu** D-pad vybírá předmět a Křížek ho použije (jako pravý klik: svitek, výstroj, krabička).
+    Funguje i předmět pod myší nebo touchpadem.
+  - **Při umisťování** (ohniště …) kruh posuneš touchpadem nebo myší, Křížek ho položí, Kolečko zruší.
+  - Místo Křížku si můžeš zvolit jiné **potvrzovací tlačítko** (Čtverec, Trojúhelník).
   - **V potvrzovacích oknech** Křížek potvrdí a Kolečko odmítne.
   - Vypnout se dá v záložce **Okna**.
   - V boji je vypnuté a platí tvoje bindy.

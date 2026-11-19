@@ -5,7 +5,7 @@
 
 local ADDON_NAME, ns = ...
 
-ns.VERSION = "0.13.0"
+ns.VERSION = "0.14.0"
 
 local PREFIX = "|cff33ccffCCP|r"
 

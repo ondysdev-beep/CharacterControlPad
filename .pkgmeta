@@ -1,0 +1,19 @@
+# BigWigs packager (.github/workflows/release.yml): the addon lives in the CharacterControlPad
+# subfolder of this repository; everything else is development material.
+package-as: CharacterControlPad
+
+move-folders:
+  CharacterControlPad/CharacterControlPad: CharacterControlPad
+
+ignore:
+  - tests
+  - tools
+  - node_modules
+  - dist
+  - package.json
+  - package-lock.json
+  - README.md
+  - CHANGELOG.md
+  - TECHNICAL_AUDIT.md
+  - CURSEFORGE.md
+  - LICENSE
