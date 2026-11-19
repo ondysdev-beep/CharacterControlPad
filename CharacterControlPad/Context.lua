@@ -1,8 +1,8 @@
 -- CharacterControlPad - context controls
 -- While a game window is open, a few controller buttons temporarily get a meaning that fits it:
 --   Circle      closes windows (the game's own Esc command, TOGGLEGAMEMENU)
---   merchant    Cross buys the hovered merchant item, Square sells the hovered bag item,
---               Triangle repairs everything, Options sells all junk
+--   merchant    D-pad chooses goods, confirm buys one; Touchpad switches to the bags (confirm
+--               sells); Triangle repairs everything, Options sells all junk
 --   NPC/quests  D-pad Up/Down chooses an option, Cross confirms (accept / continue / complete)
 --   dialogs     Cross accepts, Circle declines (popups, ready check, dungeon queue, role check)
 --   loot        D-pad Up/Down chooses an item, confirm takes it, Square takes everything
@@ -625,7 +625,7 @@ end
 -- selected item instead (same button as for the hovered item). An item hovered with the mouse or
 -- the touchpad (the touchpad moves the mouse cursor) becomes the selection.
 CONTEXTS.bags = function(c)
-	if c.navTarget then
+	if c.navTarget or c.dpadOwned then
 		return -- the loot or quest window already uses the D-pad
 	end
 	local list = BagList()
@@ -717,32 +717,52 @@ local function AnyBagOpen()
 	return #BagList() > 0
 end
 
+local function ResetMerchant()
+	merchant.mode, merchant.selected, merchant.lastHover, merchant.afterPage = "buy", nil, nil, nil
+end
+
+-- Touchpad toggles buy / sell unless the player made it a modifier (then it cannot be pressed alone).
+local function TouchpadFree()
+	local profile = ns.Profiles and ns.Profiles.Active and ns.Profiles.Active()
+	if type(profile) == "table" and type(profile.modifiers) == "table" then
+		for _, m in ipairs(ns.MODIFIERS) do
+			if profile.modifiers[m.id] == KEY.TOUCHPAD then
+				return false
+			end
+		end
+	end
+	return true
+end
+
 -- Merchant. Touchpad switches between buying (D-pad over the goods) and selling (D-pad over the
--- bags, see "bags"); the confirm button buys / sells the selected item, one piece, like a right
--- click. At the end of a page Up / Down turns the page. The item under the mouse or the touchpad
--- always wins. Triangle repairs, Options sells junk.
+-- bags, see "bags"); the confirm button buys / sells the item in the gold frame, one piece, like a
+-- right click. At the end of a page Up / Down turns the page. Goods or a bag item hovered with the
+-- mouse / touchpad become the selection. Square sells a hovered bag item. Triangle repairs (Cross
+-- when Triangle confirms), Options sells junk.
 CONTEXTS.merchant = function(c)
 	if not Shown("MerchantFrame") then
-		merchant.mode, merchant.selected, merchant.lastHover, merchant.afterPage = "buy", nil, nil, nil
+		ResetMerchant()
 		return
 	end
 	local confirm = Context.ConfirmKey()
 	local focus = Context.MouseFocus()
 	local hoverGoods = (Context.IsMerchantItem(focus) and Visible(focus)) and focus or nil
 	local hoverBag = (not hoverGoods and Context.IsBagItem(focus) and Visible(focus)) and focus or nil
-	if hoverGoods then
-		c.Claim(confirm, Click(hoverGoods, L.CTX_BUY, "RightButton"))
-	elseif hoverBag then
-		c.Claim(confirm, Click(hoverBag, L.CTX_SELL, "RightButton"))
+	if hoverBag and confirm ~= KEY.SQUARE then
 		c.Claim(KEY.SQUARE, Click(hoverBag, L.CTX_SELL, "RightButton"))
 	end
 
 	local buying = merchant.mode == "buy"
-	c.Claim(KEY.TOUCHPAD, { kind = "func", fn = Context.ToggleMerchantMode, label = L.CTX_TO_SELL, sig = "merchant-mode" })
+	if TouchpadFree() then
+		local label = buying and L.CTX_TO_SELL or L.CTX_TO_BUY
+		c.Claim(KEY.TOUCHPAD, { kind = "func", fn = Context.ToggleMerchantMode, label = label, sig = "merchant-mode" })
+	end
 
 	if buying then
 		local list = MerchantList()
-		if #list > 0 then
+		if c.navTarget then
+			-- another window (loot) already uses the D-pad and the confirm button
+		elseif #list > 0 then
 			if hoverGoods and hoverGoods ~= merchant.lastHover then
 				merchant.selected = hoverGoods
 			end
@@ -765,18 +785,31 @@ CONTEXTS.merchant = function(c)
 			c.tip = (target ~= hoverGoods) and target or nil
 			c.Claim(confirm, Click(target, L.CTX_BUY, "RightButton"))
 			for direction, k in pairs({ up = KEY.UP, down = KEY.DOWN, left = KEY.LEFT, right = KEY.RIGHT }) do
-				if not Context.Neighbor(list, target, direction) and direction == "down" and Usable("MerchantNextPageButton") then
+				local inside = Context.Neighbor(list, target, direction)
+				if not inside and direction == "down" and Usable("MerchantNextPageButton") then
 					c.Claim(k, Click(MerchantNextPageButton, L.CTX_CHOOSE))
-				elseif not Context.Neighbor(list, target, direction) and direction == "up" and Usable("MerchantPrevPageButton") then
+				elseif not inside and direction == "up" and Usable("MerchantPrevPageButton") then
 					c.Claim(k, Click(MerchantPrevPageButton, L.CTX_CHOOSE))
 				else
 					c.Claim(k, { kind = "func", fn = function() Context.MoveMerchant(direction) end, label = L.CTX_CHOOSE, sig = "merchant-" .. direction })
 				end
 			end
+			c.Hint(confirm, L.CTX_BUY, "MerchantFrame")
+			c.Hint(KEY.UP, L.CTX_CHOOSE)
+		else
+			-- nothing to buy on this tab (e.g. an empty buyback tab): keep the bags from taking the
+			-- D-pad and the confirm button, which would sell while the window is in buy mode
+			merchant.afterPage = nil
+			c.dpadOwned = true
+			local idle = { kind = "func", fn = function() end, label = L.CTX_BUY, sig = "merchant-idle" }
+			c.Claim(confirm, idle)
+			for _, k in ipairs({ KEY.UP, KEY.DOWN, KEY.LEFT, KEY.RIGHT }) do
+				c.Claim(k, idle)
+			end
 		end
-		c.Hint(confirm, L.CTX_BUY, "MerchantFrame")
-		c.Hint(KEY.UP, L.CTX_CHOOSE)
-		c.Hint(KEY.TOUCHPAD, L.CTX_TO_SELL)
+		if TouchpadFree() then
+			c.Hint(KEY.TOUCHPAD, L.CTX_TO_SELL, "MerchantFrame")
+		end
 	else
 		if not AnyBagOpen() then
 			c.Claim(confirm, { kind = "command", command = "OPENALLBAGS", label = L.CTX_OPEN_BAGS })
@@ -785,11 +818,14 @@ CONTEXTS.merchant = function(c)
 			c.Hint(confirm, L.CTX_SELL, "MerchantFrame")
 			c.Hint(KEY.UP, L.CTX_CHOOSE)
 		end
-		c.Hint(KEY.TOUCHPAD, L.CTX_TO_BUY)
+		if TouchpadFree() then
+			c.Hint(KEY.TOUCHPAD, L.CTX_TO_BUY)
+		end
 	end
+	local repairKey = (confirm == KEY.TRIANGLE) and KEY.CROSS or KEY.TRIANGLE
 	if Usable("MerchantRepairAllButton") then
-		c.Claim(KEY.TRIANGLE, Click(MerchantRepairAllButton, L.CTX_REPAIR))
-		c.Hint(KEY.TRIANGLE, L.CTX_REPAIR)
+		c.Claim(repairKey, Click(MerchantRepairAllButton, L.CTX_REPAIR))
+		c.Hint(repairKey, L.CTX_REPAIR)
 	end
 	if Usable("MerchantSellAllJunkButton") then
 		c.Claim(KEY.OPTIONS, Click(MerchantSellAllJunkButton, L.CTX_SELL_JUNK))
@@ -823,7 +859,7 @@ CONTEXTS.trainer = function(c)
 end
 
 CONTEXTS.quest = function(c)
-	if c.navTarget then
+	if c.navTarget or c.dpadOwned then
 		return -- the loot window already uses the D-pad list
 	end
 	local list, default = QuestList()
@@ -882,7 +918,7 @@ local function Signature(spec)
 	return "func:" .. (spec.sig or tostring(spec.fn))
 end
 
-local function AfterClick(proxy)
+local function AfterClick(proxy, _, down)
 	-- a chosen quest reward moves the selection to the Complete button
 	local target = nav.list[nav.index]
 	if target and rawget(target, "type") == "choice" and nav.index < #nav.list then
@@ -890,7 +926,9 @@ local function AfterClick(proxy)
 	end
 	-- a merchant page turned with the D-pad: continue at the top (next page) / bottom (previous page)
 	local clicked = type(proxy) == "table" and type(proxy.GetAttribute) == "function" and proxy:GetAttribute("clickbutton")
-	if clicked ~= nil and clicked == Frame("MerchantNextPageButton") then
+	if down == false then
+		-- the release edge of a key-down click: the page was already turned on the press
+	elseif clicked ~= nil and clicked == Frame("MerchantNextPageButton") then
 		merchant.afterPage = "first"
 	elseif clicked ~= nil and clicked == Frame("MerchantPrevPageButton") then
 		merchant.afterPage = "last"
@@ -1072,7 +1110,18 @@ local function UpdateBagTip(target)
 	if target then
 		okId, id = pcall(target.GetID, target)
 	end
-	local key = target and (tostring(target) .. ":" .. tostring(okId and id)) or nil
+	-- merchant buttons keep their index on other pages and on the buyback tab: add the tab and the item
+	local extra = ""
+	if target and Context.IsMerchantItem(target) and okId then
+		local tab = Frame("MerchantFrame") and rawget(MerchantFrame, "selectedTab")
+		local linkFn = (tab == 2) and GetBuybackItemLink or GetMerchantItemLink
+		local okLink, link = false, nil
+		if type(linkFn) == "function" then
+			okLink, link = pcall(linkFn, id)
+		end
+		extra = ":" .. tostring(tab) .. ":" .. tostring(okLink and link)
+	end
+	local key = target and (tostring(target) .. ":" .. tostring(okId and id) .. extra) or nil
 	if key == tipTarget then
 		return
 	end
@@ -1195,6 +1244,11 @@ end)
 
 ns.On("PLAYER_REGEN_ENABLED", function()
 	Context.Refresh()
+end)
+
+-- The merchant may close while the layer is not refreshed (combat, quick bind, group switched off).
+ns.On("MERCHANT_CLOSED", function()
+	ResetMerchant()
 end)
 
 ------------------------------------------------------------------------

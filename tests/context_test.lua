@@ -144,24 +144,26 @@ local merchItem = Plain({ name = "MerchantItem3ItemButton" })
 local bag = Plain({ GetBagID = function() return 0 end })
 local bagItem = Plain({ GetBagID = function() return 0 end, parent = bag })
 mouseFocus = nil refresh()
-ok(effective("PAD1") == "ACTIONBUTTON1" and effective("PAD3") == "ACTIONBUTTON3", "merchant, nothing hovered -> Cross/Square keep player's actions")
+ok(effective("PAD1") == "CLICK CharacterControlPadContextFnPAD1:LeftButton" and effective("PAD3") == "ACTIONBUTTON3", "merchant without goods (empty buyback tab): Cross does nothing, so it cannot sell from the bags")
 ok(effective("PAD4") == "CLICK CharacterControlPadContextPAD4:LeftButton" and CharacterControlPadContextPAD4.attributes.clickbutton == MerchantRepairAllButton, "Triangle repairs all via secure proxy")
 ok(CharacterControlPadContextPAD4.attributes.type == "click" and CharacterControlPadContextPAD4.template == "SecureActionButtonTemplate", "proxy is a SecureActionButton of type click")
 ok(effective("PADFORWARD") ~= "CLICK CharacterControlPadContextPADFORWARD:LeftButton", "sell junk disabled -> Options not taken")
 ok(effective("PAD2") == "TOGGLEGAMEMENU", "Circle closes the merchant")
 local hints = CharacterControlPadContextHints
 ok(hints and hints.shown and hints.anchorTo == MerchantFrame, "hint line under the merchant")
-ok(hints.text.text:find("Buy", 1, true) and hints.text.text:find("Sell", 1, true) and hints.text.text:find("Repair all", 1, true) and hints.text.text:find("Close", 1, true), "hint lists buy, sell, repair, close: " .. hints.text.text)
+ok(hints.text.text:find("Sell from bags", 1, true) and hints.text.text:find("Repair all", 1, true) and hints.text.text:find("Close", 1, true), "hint lists sell switch, repair, close: " .. hints.text.text)
+_G.MerchantItem3ItemButton = merchItem
 mouseFocus = merchItem refresh()
 ok(effective("PAD1") == "CLICK CharacterControlPadContextPAD1:RightButton" and CharacterControlPadContextPAD1.attributes.clickbutton == merchItem, "hover merchant item -> Cross = right click (buy)")
 ok(effective("PAD3") == "ACTIONBUTTON3", "Square untouched while hovering a merchant item")
 mouseFocus = bagItem refresh()
 ok(effective("PAD3") == "CLICK CharacterControlPadContextPAD3:RightButton" and CharacterControlPadContextPAD3.attributes.clickbutton == bagItem, "hover bag item -> Square = right click (sell)")
-ok(effective("PAD1") == "CLICK CharacterControlPadContextPAD1:RightButton" and CharacterControlPadContextPAD1.attributes.clickbutton == bagItem, "hovered bag item: the confirm button sells it too")
+ok(effective("PAD1") == "CLICK CharacterControlPadContextPAD1:RightButton" and CharacterControlPadContextPAD1.attributes.clickbutton == merchItem, "buy mode: Cross keeps buying the selected goods while the mouse is on a bag item")
 mouseFocus = bag refresh()
 ok(effective("PAD3") == "ACTIONBUTTON3", "container frame itself is not an item")
 MerchantSellAllJunkButton.IsEnabled = function() return true end refresh()
 ok(CharacterControlPadContextPADFORWARD.attributes.clickbutton == MerchantSellAllJunkButton, "Options sells junk when the button is usable")
+_G.MerchantItem3ItemButton = nil
 
 -- engine conflict check ignores our own layer
 ns.Engine.Apply("test")
@@ -378,8 +380,33 @@ ok(ns.Context.MerchantMode() == "buy" and sel() == goods[3], "Touchpad again -> 
 mouseFocus = goods[2] refresh()
 ok(sel() == goods[2], "goods under the mouse / touchpad become the selection")
 CharacterControlPadContextFnPADBACK.scripts.OnClick(CharacterControlPadContextFnPADBACK)
-ok(sel() == goods[2], "sell mode, but the hovered goods still win: Cross buys what is under the cursor")
+local inBags = false for _, it in ipairs(items) do if sel() == it then inBags = true end end
+ok(inBags and CharacterControlPadContextHighlight.allPoints == sel(), "sell mode: Cross sells the framed bag item even while the mouse rests on goods")
 mouseFocus = nil
+CharacterControlPadContextFnPADBACK.scripts.OnClick(CharacterControlPadContextFnPADBACK)
+press("DOWN") press("UP")
+ok(sel() == goods[1] or sel() == goods[2], "D-pad moves away from the hovered goods")
+local framed = sel()
+mouseFocus = goods[2] refresh() mouseFocus = goods[2] press("DOWN")
+ok(sel() == goods[4], "mouse resting on goods: the D-pad selection wins after moving (Cross buys the framed goods)")
+mouseFocus = nil
+-- Triangle as the confirm button: repair moves to Cross
+SlashCmdList.CHARACTERCONTROLPAD("context confirm triangle") refresh()
+ok(effective("PAD4") == "CLICK CharacterControlPadContextPAD4:RightButton" and CharacterControlPadContextPAD4.attributes.clickbutton == goods[4], "Triangle confirms: buys the framed goods")
+ok(effective("PAD1") == "CLICK CharacterControlPadContextPAD1:LeftButton" and CharacterControlPadContextPAD1.attributes.clickbutton == MerchantRepairAllButton, "Triangle confirms: Cross repairs")
+SlashCmdList.CHARACTERCONTROLPAD("context confirm cross") refresh()
+-- Touchpad used as a modifier: no buy / sell switch
+ns.Profiles.Active().modifiers.ALT = "PADBACK" refresh()
+ok(effective("PADBACK") ~= "CLICK CharacterControlPadContextFnPADBACK:LeftButton" and not CharacterControlPadContextHints.text.text:find("Touchpad", 1, true), "Touchpad as a modifier: no switch, no hint")
+ns.Profiles.Active().modifiers.ALT = "none" refresh()
+-- release edge of a page turn does not move the selection again
+CharacterControlPadContextPADDDOWN.scripts.PostClick(CharacterControlPadContextPADDDOWN, "LeftButton", false) runTimers()
+ok(sel() == goods[4], "release edge of the page button does not reset the selection")
+-- merchant closed while the layer is not refreshed (combat): MERCHANT_CLOSED resets the mode
+CharacterControlPadContextFnPADBACK.scripts.OnClick(CharacterControlPadContextFnPADBACK)
+ok(ns.Context.MerchantMode() == "sell", "sell mode")
+fire("MERCHANT_CLOSED")
+ok(ns.Context.MerchantMode() == "buy", "MERCHANT_CLOSED resets to buy mode")
 MerchantFrame.shown = false refresh()
 ok(ns.Context.MerchantMode() == "buy", "closing the merchant resets to buy mode")
 for i = 1, 4 do _G["MerchantItem" .. i .. "ItemButton"] = nil end

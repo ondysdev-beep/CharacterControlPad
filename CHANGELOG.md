@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.15.1 - 2026-11-19
+- Merchant: the confirm button now always buys / sells the item in the gold frame, also when the
+  mouse rests on another item (before, the item under the mouse could be bought or sold instead).
+- Merchant: with Triangle as the confirm button, Cross repairs (Triangle could not both buy and repair).
+- Merchant: on a tab without goods (empty buyback) the confirm button no longer sells from the bags.
+- Merchant: the item tooltip updates when switching to the buyback tab or another page.
+- Merchant: a loot window opened at a merchant keeps the D-pad for the loot.
+- Merchant: no buy / sell switch when the Touchpad is used as a modifier; closing the merchant during
+  combat resets it to buying.
+
 ## 0.15.0 - 2026-11-19
 - Buying with the controller: at a merchant, the D-pad moves a gold frame over the goods and the
   confirm button buys one piece (like a right-click). The tooltip shows the item and its price.
